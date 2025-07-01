@@ -1,0 +1,46 @@
+module Logger;
+
+export *;
+
+import * from Prometheus;
+import * from Sys_Param;
+import * from Reconfig_Param;
+import * from Param;
+
+
+interface ILogger {
+    Unit log(Rat time, Rat start, Rat end);
+}
+
+class Logger(PrometheusInterface prom) implements ILogger {
+
+    
+    Unit log(Rat time, Rat start, Rat end) {
+        Map<String,Rat> metrics = map[];
+        String toPrint = toString(time * monitoring_window()); 
+        foreach (m in global_metrics()) {
+            Rat val = prom.getV(m, global_service_name(), start, end);
+            metrics = put(metrics, m, val);
+        }
+        foreach (m in service_metrics()) {
+            Rat val = 0;
+            foreach (s in services()) {
+                Rat tmp = prom.getV(m, s, start, end);
+                val = val + tmp;
+            }
+            metrics = put(metrics, m, val);
+        }
+        Float total = float(lookupUnsafe(metrics,"tot"));
+        Float loss = float(lookupUnsafe(metrics,"rej"));
+        Float mcl = float(lookupUnsafe(metrics,"supp"));
+        Float inst = float(lookupUnsafe(metrics,"inst"));
+        Float completed = when lookupUnsafe(metrics,"comp") == 0 then -1.0 else float(lookupUnsafe(metrics,"comp"));
+        Float avgLat = when lookupUnsafe(metrics,"latency") == 0 then 0.01 else float(lookupUnsafe(metrics,"latency")/rat(completed));
+        if (total == 0.0) {
+            avgLat = 0.0; 
+            completed = 0.0;
+        }
+
+        println(toString(time * monitoring_window()) +  " " + toString(avgLat * float(time_unit_to_sec())) + " measured: " +  toString(float(rat(total)/monitoring_window())) + " tot: " + toString(total) + " comp: " + toString(completed) + " rej: " + toString(loss) + " supp: " + toString(mcl) + " inst: " + toString(inst));
+    }
+}

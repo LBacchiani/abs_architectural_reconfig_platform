@@ -1,0 +1,16 @@
+module Reconfig_Param;
+
+export *;
+
+
+def Int kbig() = 10;
+def Int k() = 8;
+
+def String global_service_name() = "system";
+def List<String> service_metrics() = list["rej", "inst"];
+def List<String> global_metrics() = list["tot", "comp", "latency", "supp"];
+def List<String> threshold_metrics() = list["tot","supp"];
+def Rat speed_per_core() = 5;
+
+//target workload,mcl in this order
+def Bool threshold(Map<String,Rat> threshold_metrics) = lookupUnsafe(threshold_metrics,"tot") - (lookupUnsafe(threshold_metrics,"supp") - kbig()) > k() || (lookupUnsafe(threshold_metrics,"supp") - kbig()) - lookupUnsafe(threshold_metrics,"tot") > k();

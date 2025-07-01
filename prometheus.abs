@@ -1,0 +1,74 @@
+module Prometheus;
+
+export *;
+
+import * from Reconfig_Param;
+import * from Architecture;
+import * from Param;
+
+
+interface Metric {
+    Pair<String,String> id();
+    List<Pair<Rat,Rat>> values(); //list of (value,timestamp)
+   [Atomic] Unit push(Rat val);
+}
+
+class DiscreteMetric(Pair<String,String> id) implements Metric {
+    List<Pair<Rat,Rat>> values = list[];
+    Pair<String,String> id() {return id;}
+    List<Pair<Rat,Rat>> values() { return values; }
+    [Atomic] Unit push(Rat val)  { values = appendright(values,Pair(val,timeValue(now()))); }
+}
+
+class InstantMetric(Pair<String,String> id) implements Metric {
+    List<Pair<Rat,Rat>> values = list[];
+    Pair<String,String> id() {return id;}
+    List<Pair<Rat,Rat>> values() { return values; }
+    [Atomic] Unit push(Rat val)  { values = list[Pair(val,timeValue(now()))]; }
+}
+
+
+
+
+interface PrometheusInterface {
+    [Atomic] Unit register(List<Metric> ms);
+    Rat getV(String metric, String key, Rat start, Rat end);
+}
+
+
+class Prometheus() implements PrometheusInterface {
+
+    List<Metric> metrics = list[];
+
+    [Atomic] Unit register(List<Metric> ms) {
+        metrics = concatenate(metrics,ms);
+    }
+
+    Rat getV(String metric, String key, Rat start, Rat end) {
+        Metric m = this.getMetric(metric,key);
+        List<Pair<Rat,Rat>> values = m.values();
+        Rat toRet = 0;
+        if (length(values) == 1) toRet = fst(nth(values,0));
+        else {
+            values = filter((Pair<Rat,Rat> p) => snd(p) >= start && snd(p) < end)(values);
+            toRet = foldl((Pair<Rat,Rat> m, Rat acc) => fst(m) + acc)(values,0);
+        }
+        return toRet;
+    }
+
+    Metric getMetric(String metric, String key) {
+        Metric found = null;
+        Int i = 0;
+
+        while (i < length(metrics)) {
+            Metric curr = nth(metrics,i);
+            Pair<String,String> id = curr.id();
+            if (id == Pair(metric,key)) {
+                found = curr;
+                i = length(metrics);
+            }
+            i = i + 1;
+        }
+        return found;
+    }
+}

@@ -1,0 +1,61 @@
+module Simulation;
+
+export *;
+import * from Monitor;
+import * from Architecture;
+import * from ABS.DC;
+import * from Setup;
+import * from Scale1;
+import * from Scale2;
+import * from Wrapper;
+import * from WorkloadGenerator;
+import * from Adaptation;
+import * from Prometheus;
+import * from Sys_Param;
+import * from Reconfig_Param;
+import * from Param;
+
+interface ISimulation {
+     Unit start();
+}
+
+class Simulation() implements ISimulation {
+
+     Unit start() {
+
+          CloudProvider cp = new CloudProvider("CloudProvider");
+
+          PrometheusInterface prometheus = new local Prometheus();
+
+
+          ////SETUP///
+          Setup setup = new Setup(cp, prometheus);
+          await setup!deploy();
+
+          await duration(10);
+
+          List<ImageLoadBalancerInterface> imageLBList = await setup!getImageLoadBalancerInterface();
+          ImageLoadBalancerInterface imageLB = head(imageLBList);
+
+          List<AuthLoadBalancerInterface> authLBList = await setup!getAuthLoadBalancerInterface();
+          AuthLoadBalancerInterface authLB = head(authLBList);
+
+          List<RecommenderLoadBalancerInterface> recommenderLBList = await setup!getRecommenderLoadBalancerInterface();
+          RecommenderLoadBalancerInterface recommenderLB = head(recommenderLBList);
+
+          List<PersistenceLoadBalancerInterface> persistenceLBList = await setup!getPersistenceLoadBalancerInterface();
+          PersistenceLoadBalancerInterface persistenceLB = head(persistenceLBList);
+
+          List<WebUILoadBalancerInterface> webUILBList = await setup!getWebUILoadBalancerInterface();
+          WebUILoadBalancerInterface webUILB = head(webUILBList);
+          Scale1 s1 = new Scale1(cp, authLB, webUILB, persistenceLB, imageLB, prometheus, recommenderLB);
+          WrapperScaleInterface w1 = new WrapperScale(s1, null);
+          Scale2 s2 = new Scale2(cp, authLB, webUILB, persistenceLB, imageLB, prometheus, recommenderLB);
+          WrapperScaleInterface w2 = new WrapperScale(null, s2);
+          AdaptationAlgorithm gs_scaler = new local GS_Scaler(list[w1,w2], prometheus);
+          new local Monitor(prometheus, gs_scaler);
+          Rat delay = (100 + random(1000)) / 1000; //delay in ms
+          await duration(delay * time_unit_to_sec());
+          new local WorkloadGenerator(webUILB);
+     }
+}

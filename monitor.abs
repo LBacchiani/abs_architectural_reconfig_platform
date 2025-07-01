@@ -1,0 +1,40 @@
+module Monitor;
+
+export *;
+
+import * from Logger;
+import * from Param;
+import * from Reconfig_Param;
+import * from Prometheus;
+import * from Adaptation;
+import * from Sys_Param;
+
+
+
+
+class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
+
+    Int dur = 0;
+    ILogger logger;
+    
+    {
+        logger = new local Logger(prom);
+    }
+
+    Unit run() {
+        logger.log(dur,0,0);
+        while(dur < length(workload())) {
+            await duration(monitoring_window() * time_unit_to_sec());
+            dur = dur + 1;
+            Rat start = timeValue(now()) - (monitoring_window() * time_unit_to_sec());
+            Rat end = timeValue(now());
+            logger.log(dur,start,end);
+            Map<String,Rat> threshold_metrics = map[];
+            foreach (m in threshold_metrics()) {
+                Rat v = prom.getV(m, global_service_name(), start, end);
+                threshold_metrics = put(threshold_metrics,m,v);
+            }
+            if (threshold(threshold_metrics)) alg!adapt(threshold_metrics);
+        }
+    }
+}
