@@ -1,4 +1,4 @@
-FROM openjdk:24-jdk-alpine
+FROM openjdk:24-jdk
 
 # Install Erlang and dependencies using apk
 RUN apk add --no-cache erlang
