@@ -50,10 +50,10 @@ class Prometheus() implements PrometheusInterface {
 
     Rat getV(String metric, String key, Rat start, Rat end) {
         Metric m = this.getMetric(metric,key);
+        Rat toRet = 0;
         if (m == null) {
             println("ERROR: Metric not found for id = " + metric + ", key = " + key);
-            toRet = 0;
-        } else {Rat toRet = m.value();}
+        } else {toRet = m.value();}
         return toRet;
     }
 
