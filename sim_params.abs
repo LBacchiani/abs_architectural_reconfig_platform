@@ -5,7 +5,7 @@ export *;
 
 ///TEASTORE PARAMETERS
 
-def Rat time_unit_to_sec() = 1000; //1TU = 1/3s
+def Rat time_unit_to_sec() = 1; //1TU = 1/3s
 def Rat monitoring_window() = 20;  //second
 def Rat sendingWin() = 1;
 
