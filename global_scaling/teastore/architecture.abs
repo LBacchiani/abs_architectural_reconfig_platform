@@ -36,6 +36,7 @@ interface WebUILoadBalancerInterface {
     WebUIInterface disconnectInstance();
     Maybe<Fut<Result>> request();
     Unit removeMessage();
+    Unit addLoss();
 }
 
 [SmartDeployCost : "{\"class\" : \"WebUILoadBalancer\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 100,\"Memory\" : 100},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}],\"methods\" : [{\"add\" : {\"name\" : \"connectInstance\",\"param_type\" : \"WebUIInterface\"},\"remove\" : {\"name\" : \"disconnectInstance\", \"return_type\": \"WebUIInterface\"}}]}]}"]
@@ -43,28 +44,24 @@ class WebUILoadBalancer(PrometheusInterface prometheus) implements WebUILoadBala
     List<WebUIInterface> instancesConnected = list[];
     Int pending = 0;
     Int nextInstance = -1;
-    Metric instances;
     Metric total;
     Metric loss;
     Metric globalTotal;
     {
-        instances = new local InstantMetric(Pair("inst","WebUI"));
         total = new local DiscreteMetric(Pair("tot","WebUI"));
-        loss = new local DiscreteMetric(Pair("rej","WebUI"));
-        globalTotal = new local DiscreteMetric(Pair("tot","system"));
-        prometheus.register(list[instances,total,loss,globalTotal]);
+        loss = new local DiscreteMetric(Pair("rej",global_service_name()));
+        globalTotal = new local DiscreteMetric(Pair("tot",global_service_name()));
+        prometheus.register(list[total,loss,globalTotal]);
     }
 
 
     Unit connectInstance(WebUIInterface newInstance){
         instancesConnected = appendright(instancesConnected, newInstance);
-        instances.push(length(instancesConnected));
     }
 
     WebUIInterface disconnectInstance(){
         WebUIInterface removedInstance = nth(instancesConnected, length(instancesConnected)-1);
         instancesConnected = without(instancesConnected, removedInstance);
-        instances.push(length(instancesConnected));
         return removedInstance;
     }
 
@@ -85,6 +82,8 @@ class WebUILoadBalancer(PrometheusInterface prometheus) implements WebUILoadBala
         return res;
     }
 
+    Unit addLoss() {loss.push(1);}
+
     Unit removeMessage() {pending = pending - 1;}
 }
 
@@ -94,16 +93,15 @@ interface WebUIInterface {
 
 [SmartDeployCost : "{\"class\" : \"WebUI\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 1200, \"Memory\" : 512},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}, {\"kind\" : \"require\",\"type\" : \"PersistenceLoadBalancerInterface\"}, {\"kind\" : \"require\",\"type\" : \"AuthLoadBalancerInterface\"}, {\"kind\" : \"require\",\"type\" : \"ImageLoadBalancerInterface\"}, {\"kind\" : \"require\",\"type\" : \"RecommenderLoadBalancerInterface\"}],\"methods\" : []}]}"]
 class WebUI(PrometheusInterface prometheus, PersistenceLoadBalancerInterface persistence, AuthLoadBalancerInterface auth, ImageLoadBalancerInterface image, RecommenderLoadBalancerInterface recommender) implements WebUIInterface {
-    Metric latency;
     Metric completed;
     Metric globalLatency;
     Metric globalCompleted;
+
     {
-        latency = new local DiscreteMetric(Pair("latency","WebUI"));
         completed = new local DiscreteMetric(Pair("comp","WebUI"));
-        globalCompleted = new local DiscreteMetric(Pair("comp", "system"));
-        globalLatency = new local DiscreteMetric(Pair("latency", "system"));
-        prometheus.register(list[latency,completed,globalCompleted,globalLatency]);
+        globalCompleted = new local DiscreteMetric(Pair("comp", global_service_name()));
+        globalLatency = new local DiscreteMetric(Pair("latency", global_service_name()));
+        prometheus.register(list[completed,globalCompleted,globalLatency]);        
     }
     Result unfoldOptional(Maybe<Fut<Result>> result) {
         Result res = Failure;
@@ -121,7 +119,7 @@ class WebUI(PrometheusInterface prometheus, PersistenceLoadBalancerInterface per
     Result request(WebUILoadBalancerInterface balancer, Rat start) {
         [Cost: speed_per_core() * time_unit_to_sec() * webUICores() / nth(serviceMCLs(),0)] skip;
         Rat stop = timeValue(now());
-        latency.push(stop - start);
+        //latency.push(stop - start);
         completed.push(1);
         balancer!removeMessage();
         Int n = 1 + random(5);
@@ -152,6 +150,8 @@ class WebUI(PrometheusInterface prometheus, PersistenceLoadBalancerInterface per
             stop = timeValue(now());
             globalCompleted.push(1);
             globalLatency.push(stop - start);
+        }  else {
+            balancer!addLoss();
         }
         return res;
     }
@@ -171,25 +171,19 @@ class PersistenceLoadBalancer(PrometheusInterface prometheus) implements Persist
     List<PersistenceInterface> instancesConnected = list[];
     Int pending = 0;
     Int nextInstance = -1;
-    Metric instances;
     Metric total;
-    Metric loss;
     {
-        instances = new local InstantMetric(Pair("inst","Persistence"));
         total = new local DiscreteMetric(Pair("tot","Persistence"));
-        loss = new local DiscreteMetric(Pair("rej","Persistence"));
-        prometheus.register(list[instances,total,loss]);
+        prometheus.register(list[total]);
     }
 
     Unit connectInstance(PersistenceInterface newInstance){
         instancesConnected = appendright(instancesConnected, newInstance);
-        instances.push(length(instancesConnected));
     }
 
     PersistenceInterface disconnectInstance(){
         PersistenceInterface removedInstance = nth(instancesConnected, length(instancesConnected)-1);
         instancesConnected = without(instancesConnected, removedInstance);
-        instances.push(length(instancesConnected));
         return removedInstance;
     }
 
@@ -203,9 +197,7 @@ class PersistenceLoadBalancer(PrometheusInterface prometheus) implements Persist
             Rat start = timeValue(now());
             Fut<Result> req = selectedInstance!request(this, start);
             res = Just(req);
-        } else {
-            loss.push(1);
-        }
+        } 
         return res;
     }
 
@@ -218,17 +210,14 @@ interface PersistenceInterface {
 
 [SmartDeployCost : "{\"class\" : \"Persistence\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 900, \"Memory\" : 412},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}],\"methods\" : []}]}"]
 class Persistence(PrometheusInterface prometheus) implements PersistenceInterface {
-    Metric latency;
     Metric completed;
     {
-        latency = new local DiscreteMetric(Pair("latency","Persistence"));
         completed = new local DiscreteMetric(Pair("comp","Persistence"));
-        prometheus.register(list[latency,completed]);
+        prometheus.register(list[completed]);
     }
     Result request(PersistenceLoadBalancerInterface balancer, Rat start) {
         [Cost: speed_per_core() * time_unit_to_sec() * persistenceCores() / nth(serviceMCLs(),1)] skip;
         Rat stop = timeValue(now());
-        latency.push(stop - start);
         completed.push(1);
         balancer!removeMessage();
         return Success;
@@ -249,25 +238,19 @@ class AuthLoadBalancer(PrometheusInterface prometheus) implements AuthLoadBalanc
     List<AuthInterface> instancesConnected = list[];
     Int pending = 0;
     Int nextInstance = -1;
-    Metric instances;
     Metric total;
-    Metric loss;
     {
-        instances = new local InstantMetric(Pair("inst","Auth"));
         total = new local DiscreteMetric(Pair("tot","Auth"));
-        loss = new local DiscreteMetric(Pair("rej","Auth"));
-        prometheus.register(list[instances,total,loss]);
+        prometheus.register(list[total]);
     }
 
     Unit connectInstance(AuthInterface newInstance){
         instancesConnected = appendright(instancesConnected, newInstance);
-        instances.push(length(instancesConnected));
     }
 
     AuthInterface disconnectInstance(){
         AuthInterface removedInstance = nth(instancesConnected, length(instancesConnected)-1);
         instancesConnected = without(instancesConnected, removedInstance);
-        instances.push(length(instancesConnected));
         return removedInstance;
     }
 
@@ -281,9 +264,7 @@ class AuthLoadBalancer(PrometheusInterface prometheus) implements AuthLoadBalanc
             Rat start = timeValue(now());
             Fut<Result> req = selectedInstance!request(this, start);
             res = Just(req);
-        } else {
-            loss.push(1);
-        }
+        } 
         return res;
     }
 
@@ -296,17 +277,14 @@ interface AuthInterface {
 
 [SmartDeployCost : "{\"class\" : \"Auth\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 900, \"Memory\" : 512},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"},{\"kind\" : \"require\",\"type\" : \"PersistenceLoadBalancerInterface\"}],\"methods\" : []}]}"]
 class Auth(PrometheusInterface prometheus, PersistenceLoadBalancerInterface persistence) implements AuthInterface {
-    Metric latency;
     Metric completed;
     {
-        latency = new local DiscreteMetric(Pair("latency","Auth"));
         completed = new local DiscreteMetric(Pair("comp","Auth"));
-        prometheus.register(list[latency,completed]);
+        prometheus.register(list[completed]);
     }
     Result request(AuthLoadBalancerInterface balancer, Rat start) {
         [Cost: speed_per_core() * time_unit_to_sec() * authCores() / nth(serviceMCLs(),2)] skip;
         Rat stop = timeValue(now());
-        latency.push(stop - start);
         completed.push(1);
         balancer!removeMessage();
         Result res = Failure;
@@ -336,26 +314,20 @@ class ImageLoadBalancer(PrometheusInterface prometheus) implements ImageLoadBala
     List<ImageInterface> instancesConnected = list[];
     Int pending = 0;
     Int nextInstance = -1;
-    Metric instances;
     Metric total;
-    Metric loss;
 
     {
-        instances = new local InstantMetric(Pair("inst","Image"));
         total = new local DiscreteMetric(Pair("tot","Image"));
-        loss = new local DiscreteMetric(Pair("rej","Image"));
-        prometheus.register(list[instances,total,loss]);
+        prometheus.register(list[total]);
     }
 
     Unit connectInstance(ImageInterface newInstance){
         instancesConnected = appendright(instancesConnected, newInstance);
-        instances.push(length(instancesConnected));
     }
 
     ImageInterface disconnectInstance(){
         ImageInterface removedInstance = nth(instancesConnected, length(instancesConnected)-1);
         instancesConnected = without(instancesConnected, removedInstance);
-        instances.push(length(instancesConnected));
         return removedInstance;
     }
 
@@ -369,9 +341,7 @@ class ImageLoadBalancer(PrometheusInterface prometheus) implements ImageLoadBala
             Rat start = timeValue(now());
             Fut<Result> req = selectedInstance!request(this, start);
             res = Just(req);
-        } else {
-            loss.push(1);
-        }
+        } 
         return res;
     }
 
@@ -384,17 +354,14 @@ interface ImageInterface {
 
 [SmartDeployCost : "{\"class\" : \"Image\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 1100, \"Memory\" : 512},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}],\"methods\" : []}]}"]
 class Image(PrometheusInterface prometheus) implements ImageInterface {
-    Metric latency;
     Metric completed;
     {
-        latency = new local DiscreteMetric(Pair("latency","Image"));
         completed = new local DiscreteMetric(Pair("comp","Image"));
-        prometheus.register(list[latency,completed]);
+        prometheus.register(list[completed]);
     }
     Result request(ImageLoadBalancerInterface balancer, Rat start) {
         [Cost: speed_per_core() * time_unit_to_sec() * imageCores() / nth(serviceMCLs(),4)] skip;
         Rat stop = timeValue(now());
-        latency.push(stop - start);
         completed.push(1);
         balancer!removeMessage();
         return Success;
@@ -416,27 +383,21 @@ class RecommenderLoadBalancer(PrometheusInterface prometheus) implements Recomme
     List<RecommenderInterface> instancesConnected = list[];
     Int pending = 0;
     Int nextInstance = -1;
-    Metric instances;
     Metric total;
-    Metric loss;
 
     {
-        instances = new local InstantMetric(Pair("inst","Recommender"));
         total = new local DiscreteMetric(Pair("tot","Recommender"));
-        loss = new local DiscreteMetric(Pair("rej","Recommender"));
-        prometheus.register(list[instances,total,loss]);
+        prometheus.register(list[total]);
 
     }
 
     Unit connectInstance(RecommenderInterface newInstance){
         instancesConnected = appendright(instancesConnected, newInstance);
-        instances.push(length(instancesConnected));
     }
 
     RecommenderInterface disconnectInstance(){
         RecommenderInterface removedInstance = nth(instancesConnected, length(instancesConnected)-1);
         instancesConnected = without(instancesConnected, removedInstance);
-        instances.push(length(instancesConnected));
         return removedInstance;
     }
 
@@ -450,9 +411,7 @@ class RecommenderLoadBalancer(PrometheusInterface prometheus) implements Recomme
             Rat start = timeValue(now());
             Fut<Result> req = selectedInstance!request(this, start);
             res = Just(req);
-        } else {
-            loss.push(1);
-        }
+        } 
         return res;
     }
 
@@ -465,17 +424,14 @@ interface RecommenderInterface {
 
 [SmartDeployCost : "{\"class\" : \"Recommender\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 800, \"Memory\" : 512},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}],\"methods\" : []}]}"]
 class Recommender(PrometheusInterface prometheus) implements RecommenderInterface {
-    Metric latency;
     Metric completed;
     {
-        latency = new local DiscreteMetric(Pair("latency","Recommender"));
         completed = new local DiscreteMetric(Pair("comp","Recommender"));
-        prometheus.register(list[latency,completed]);
+        prometheus.register(list[completed]);
     }
     Result request(RecommenderLoadBalancerInterface balancer, Rat start) {
         [Cost: speed_per_core() * time_unit_to_sec() * recommenderCores() / nth(serviceMCLs(),3)] skip;
         Rat stop = timeValue(now());
-        latency.push(stop - start);
         completed.push(1);
         balancer!removeMessage();
         return Success;

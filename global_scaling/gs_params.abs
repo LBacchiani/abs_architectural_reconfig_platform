@@ -7,8 +7,8 @@ def Int kbig() = 10;
 def Int k() = 8;
 
 def String global_service_name() = "system";
-def List<String> service_metrics() = list["rej"];
-def List<String> global_metrics() = list["tot", "comp", "latency", "supp", "inst"];
+def List<String> service_metrics() = list[];
+def List<String> global_metrics() = list["tot", "comp", "latency", "supp", "inst", "rej"];
 def List<String> threshold_metrics() = list["tot","supp"];
 def Rat speed_per_core() = 5;
 
