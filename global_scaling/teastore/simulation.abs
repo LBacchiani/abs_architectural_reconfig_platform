@@ -54,8 +54,8 @@ class Simulation() implements ISimulation {
           WrapperScaleInterface w2 = new WrapperScale(null, s2);
           AdaptationAlgorithm gs_scaler = new local GS_Scaler(list[w1,w2], prometheus);
           new local Monitor(prometheus, gs_scaler);
-          Rat delay = (100 + random(1500)) / 1000; //delay in ms
-          await duration(delay * time_unit_to_sec());
+          // Rat delay = (100 + random(1500)) / 1000; //delay in ms
+          // await duration(delay * time_unit_to_sec());
           new local WorkloadGenerator(webUILB);
      }
 }

@@ -35,6 +35,7 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
                 threshold_metrics = put(threshold_metrics,m,v);
             }
             if (threshold(threshold_metrics)) alg!adapt(threshold_metrics);
+            prom.flush();
         }
     }
 }
