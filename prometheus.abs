@@ -8,27 +8,26 @@ import * from Param;
 
 
 interface Metric {
-    Pair<String,String> id();
-    List<Pair<Rat,Rat>> values(); //list of (value,timestamp)
+    [Atomic] Pair<String,String> id();
+    Rat value(); 
    [Atomic] Unit push(Rat val);
    Unit flush();
 }
 
 class DiscreteMetric(Pair<String,String> id) implements Metric {
-    List<Pair<Rat,Rat>> values = list[];
-    Pair<String,String> id() {return id;}
-    List<Pair<Rat,Rat>> values() { return values; }
-    [Atomic] Unit push(Rat val)  { values = appendright(values,Pair(val,timeValue(now()))); }
-    Unit flush() { values = filter((Pair<Rat,Rat> p) => snd(p) > timeValue(now()) - (monitoring_window() * time_unit_to_sec()))(values);}
-
+    Rat value = 0;
+    [Atomic] Pair<String,String> id() {return id;}
+    Rat value() { return value; }
+    [Atomic] Unit push(Rat val)  { value = value + val; }
+    Unit flush() {value = 0;}
 }
 
 class InstantMetric(Pair<String,String> id) implements Metric {
-    List<Pair<Rat,Rat>> values = list[];
-    Pair<String,String> id() {return id;}
-    List<Pair<Rat,Rat>> values() { return values; }
-    [Atomic] Unit push(Rat val)  { values = list[Pair(val,timeValue(now()))]; }
-    Unit flush() { }
+    Rat value = 0;
+    [Atomic] Pair<String,String> id() {return id;}
+    Rat value() { return value; }
+    [Atomic] Unit push(Rat val)  { value = val; }
+    Unit flush() {}
 }
 
 
@@ -43,42 +42,33 @@ interface PrometheusInterface {
 
 class Prometheus() implements PrometheusInterface {
 
-    List<Metric> metrics = list[];
+    Map<Pair<String,String>,List<Metric>> metrics = map[];
 
     [Atomic] Unit register(List<Metric> ms) {
-        metrics = concatenate(metrics,ms);
-    }
-
-    Unit flush() { 
-        foreach (m in metrics) await m!flush();
+        foreach (m in ms) {
+            Pair<String,String> id = m.id();
+            if (contains(keys(metrics),id)) {
+                List<Metric> tmp = lookupUnsafe(metrics,id);
+                tmp = appendright(tmp,m);
+                metrics = put(metrics,id,tmp);
+            }
+            else metrics = put(metrics,id,list[m]);
+        }
     }
 
     Rat getV(String metric, String key, Rat start, Rat end) {
-        List<Metric> matches = this.getMetrics(metric,key);
-        Rat toRet = 0;
-        foreach (m in matches) {
-            List<Pair<Rat,Rat>> values = m.values();
-            if (length(values) == 1) toRet = toRet + fst(nth(values,0));
-            else {
-                values = filter((Pair<Rat,Rat> p) => snd(p) >= start && snd(p) < end)(values);
-                toRet = toRet + foldl((Pair<Rat,Rat> m, Rat acc) => fst(m) + acc)(values,0);
-            }
+        List<Metric> ms = lookupDefault(metrics,Pair(metric,key),list[]);
+        Rat toRet = 0;//m.value();
+        foreach (m in ms) {
+            Rat val = m.value();
+            toRet = toRet + val;
         }
         return toRet;
     }
 
-    List<Metric> getMetrics(String metric, String key) {
-        List<Metric> found = list[];
-        Int i = 0;
-
-        while (i < length(metrics)) {
-            Metric curr = nth(metrics,i);
-            Pair<String,String> id = curr.id();
-            if (id == Pair(metric,key)) {
-                found = appendright(found,curr);
-            }
-            i = i + 1;
+    Unit flush() {
+        foreach (ms in values(metrics)) {
+            foreach(m in ms) m.flush();
         }
-        return found;
     }
 }

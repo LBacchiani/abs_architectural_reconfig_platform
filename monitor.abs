@@ -22,20 +22,28 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
     }
 
     Unit run() {
-        logger.log(dur,0,0);
+        logger!log(dur,0,0,map[]);
         while(dur < length(workload())) {
             await duration(monitoring_window() * time_unit_to_sec());
             dur = dur + 1;
             Rat start = timeValue(now()) - (monitoring_window() * time_unit_to_sec());
             Rat end = timeValue(now());
-            Map<String,Rat> threshold_metrics = map[];
-            foreach (m in threshold_metrics()) {
-                Rat v = await prom!getV(m, global_service_name(), start, end);
-                threshold_metrics = put(threshold_metrics,m,v);
+            Map<String,Rat> metrics = map[];
+            foreach (m in global_metrics()) {
+                Rat val = await prom!getV(m, global_service_name(), start, end);
+                metrics = put(metrics, m, val);
             }
-            if (threshold(threshold_metrics)) alg!adapt(threshold_metrics);
-            await logger!log(dur,start,end);
-            await prom!flush();
+            foreach (m in service_metrics()) {
+                Rat val = 0;
+                foreach (s in services()) {
+                    Rat tmp = await prom!getV(m, s, start, end);
+                    val = val + tmp;
+                }
+                metrics = put(metrics, m, val);
+            }
+            if (threshold(metrics)) alg!adapt(metrics);
+            logger!log(dur,start,end,metrics);
+            prom!flush();
         }
     }
 }

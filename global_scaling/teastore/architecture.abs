@@ -383,11 +383,11 @@ class RecommenderLoadBalancer(PrometheusInterface prometheus) implements Recomme
     List<RecommenderInterface> instancesConnected = list[];
     Int pending = 0;
     Int nextInstance = -1;
-    Metric total;
+    // Metric total;
 
     {
-        total = new local DiscreteMetric(Pair("tot","Recommender"));
-        prometheus!register(list[total]);
+        // total = new local DiscreteMetric(Pair("tot","Recommender"));
+        // prometheus!register(list[total]);
 
     }
 
@@ -403,7 +403,7 @@ class RecommenderLoadBalancer(PrometheusInterface prometheus) implements Recomme
 
      Maybe<Fut<Result>> request() {
         Maybe<Fut<Result>> res = Nothing;
-        total!push(1);
+        // total!push(1);
         if(pending < buffer_size()) {
             nextInstance = (nextInstance + 1) % length(instancesConnected);
             RecommenderInterface selectedInstance = nth(instancesConnected, nextInstance);
@@ -426,13 +426,13 @@ interface RecommenderInterface {
 class Recommender(PrometheusInterface prometheus) implements RecommenderInterface {
     Metric completed;
     {
-        completed = new local DiscreteMetric(Pair("comp","Recommender"));
-       prometheus!register(list[completed]);
+        // completed = new local DiscreteMetric(Pair("comp","Recommender"));
+    //    prometheus!register(list[completed]);
     }
     Result request(RecommenderLoadBalancerInterface balancer, Rat start) {
-        [Cost: speed_per_core() * time_unit_to_sec() * recommenderCores() / nth(serviceMCLs(),3)] skip;
-        Rat stop = timeValue(now());
-        completed!push(1);
+        // [Cost: speed_per_core() * time_unit_to_sec() * recommenderCores() / nth(serviceMCLs(),3)] skip;
+        // Rat stop = timeValue(now());
+        // completed!push(1);
         balancer!removeMessage();
         return Success;
     }

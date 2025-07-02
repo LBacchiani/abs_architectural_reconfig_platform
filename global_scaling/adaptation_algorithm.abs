@@ -20,7 +20,7 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
     {
         mclMetric = new local InstantMetric(Pair("supp",global_service_name()));
         instMetric = new local InstantMetric(Pair("inst", global_service_name()));
-        prom.register(list[mclMetric,instMetric]);
+        prom!register(list[mclMetric,instMetric]);
         Int i = length(orchestrations);
         while (i > 0) {
             deployedDeltas = appendright(deployedDeltas,0);
