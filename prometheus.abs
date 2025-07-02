@@ -9,30 +9,24 @@ import * from Param;
 
 interface Metric {
     Pair<String,String> id();
-    List<Pair<Rat,Rat>> values(); //list of (value,timestamp)
+    Rat value(); 
    [Atomic] Unit push(Rat val);
    Unit flush();
 }
 
 class DiscreteMetric(Pair<String,String> id) implements Metric {
-    List<Pair<Rat,Rat>> values = list[];
+    Rat value = 0;
     Pair<String,String> id() {return id;}
-    List<Pair<Rat,Rat>> values() { return values; }
-    [Atomic] Unit push(Rat val)  { 
-        Rat curr = timeValue(now());
-        values = appendright(values,Pair(val,curr)); 
-    }
-    Unit flush() {
-        Rat curr = timeValue(now());
-        values = filter((Pair<Rat,Rat> p) => snd(p) >= curr)(values);
-    }
+    Rat value() { return value; }
+    [Atomic] Unit push(Rat val)  { value = value + val; }
+    Unit flush() {value = 0;}
 }
 
 class InstantMetric(Pair<String,String> id) implements Metric {
-    List<Pair<Rat,Rat>> values = list[];
+    Rat value = 0;
     Pair<String,String> id() {return id;}
-    List<Pair<Rat,Rat>> values() { return values; }
-    [Atomic] Unit push(Rat val)  { values = list[Pair(val,timeValue(now()))]; }
+    Rat value() { return value; }
+    [Atomic] Unit push(Rat val)  { value = val; }
     Unit flush() {}
 }
 
@@ -56,13 +50,7 @@ class Prometheus() implements PrometheusInterface {
 
     Rat getV(String metric, String key, Rat start, Rat end) {
         Metric m = this.getMetric(metric,key);
-        List<Pair<Rat,Rat>> values = m.values();
-        Rat toRet = 0;
-        if (length(values) == 1) toRet = fst(nth(values,0));
-        else {
-            values = filter((Pair<Rat,Rat> p) => snd(p) >= start && snd(p) < end)(values);
-            toRet = foldl((Pair<Rat,Rat> m, Rat acc) => fst(m) + acc)(values,0);
-        }
+        Rat toRet = m.value();
         return toRet;
     }
 

@@ -28,13 +28,13 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
             dur = dur + 1;
             Rat start = timeValue(now()) - (monitoring_window() * time_unit_to_sec());
             Rat end = timeValue(now());
-            logger.log(dur,start,end);
             Map<String,Rat> threshold_metrics = map[];
             foreach (m in threshold_metrics()) {
                 Rat v = prom.getV(m, global_service_name(), start, end);
                 threshold_metrics = put(threshold_metrics,m,v);
             }
             if (threshold(threshold_metrics)) alg!adapt(threshold_metrics);
+            logger.log(dur,start,end);
             prom.flush();
         }
     }

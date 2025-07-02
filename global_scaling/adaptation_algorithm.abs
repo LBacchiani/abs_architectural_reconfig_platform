@@ -14,17 +14,21 @@ interface AdaptationAlgorithm {
 class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface prom) implements AdaptationAlgorithm {
     List<Int> deployedDeltas = list[];
     Metric mclMetric;
+    Metric inst;
+    List<Int> currConfig = base_config();
 
     {
         mclMetric = new local InstantMetric(Pair("supp","system"));
-        prom.register(list[mclMetric]);
+        inst = new local InstantMetric(Pair("inst", "system"));
+        prom.register(list[mclMetric,inst]);
         Int i = length(orchestrations);
         while (i > 0) {
             deployedDeltas = appendright(deployedDeltas,0);
             i = i - 1;
         }
-        Rat mcl = this.mcl(base_config());
+        Rat mcl = this.mcl(currConfig);
         mclMetric.push(mcl);
+        inst.push(foldl((Int v, Int acc) => v + acc)(currConfig,0));
     }
 
     Unit adapt(Map<String,Rat> metrics) {
@@ -68,6 +72,8 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
             }
             config = candidateConfig;
         }
+        currConfig = config;
+        inst.push(foldl((Int v, Int acc) => v + acc)(currConfig,0));
         mclMetric.push(mcl);
         return configDeltas;
     }
