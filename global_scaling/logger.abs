@@ -19,13 +19,13 @@ class Logger(PrometheusInterface prom) implements ILogger {
         Map<String,Rat> metrics = map[];
         String toPrint = toString(time * monitoring_window()); 
         foreach (m in global_metrics()) {
-            Rat val = prom.getV(m, global_service_name(), start, end);
+            Rat val = await prom!getV(m, global_service_name(), start, end);
             metrics = put(metrics, m, val);
         }
         foreach (m in service_metrics()) {
             Rat val = 0;
             foreach (s in services()) {
-                Rat tmp = prom.getV(m, s, start, end);
+                Rat tmp = await prom!getV(m, s, start, end);
                 val = val + tmp;
             }
             metrics = put(metrics, m, val);

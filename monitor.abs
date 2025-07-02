@@ -30,12 +30,12 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
             Rat end = timeValue(now());
             Map<String,Rat> threshold_metrics = map[];
             foreach (m in threshold_metrics()) {
-                Rat v = prom.getV(m, global_service_name(), start, end);
+                Rat v = await prom!getV(m, global_service_name(), start, end);
                 threshold_metrics = put(threshold_metrics,m,v);
             }
             if (threshold(threshold_metrics)) alg!adapt(threshold_metrics);
-            logger.log(dur,start,end);
-            prom.flush();
+            await logger!log(dur,start,end);
+            await prom!flush();
         }
     }
 }

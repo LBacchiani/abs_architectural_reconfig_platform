@@ -27,9 +27,9 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
             i = i - 1;
         }
         Rat mcl = this.mcl(base_config());
-        mclMetric.push(mcl);
+        mclMetric!push(mcl);
         Rat inst = this.instances(base_config());
-        instMetric.push(inst);
+        instMetric!push(inst);
     }
 
     Unit adapt(Map<String,Rat> metrics) {
@@ -74,8 +74,8 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
             config = candidateConfig;
         }
         Int instances = this.instances(config);
-        instMetric.push(instances);
-        mclMetric.push(mcl);
+        instMetric!push(instances);
+        mclMetric!push(mcl);
         return configDeltas;
     }
 

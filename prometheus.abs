@@ -50,31 +50,32 @@ class Prometheus() implements PrometheusInterface {
     }
 
     Unit flush() { 
-        foreach (m in metrics) m.flush();
+        foreach (m in metrics) await m!flush();
     }
 
     Rat getV(String metric, String key, Rat start, Rat end) {
-        Metric m = this.getMetric(metric,key);
-        List<Pair<Rat,Rat>> values = m.values();
+        List<Metric> matches = this.getMetrics(metric,key);
         Rat toRet = 0;
-        if (length(values) == 1) toRet = fst(nth(values,0));
-        else {
-            values = filter((Pair<Rat,Rat> p) => snd(p) >= start && snd(p) < end)(values);
-            toRet = foldl((Pair<Rat,Rat> m, Rat acc) => fst(m) + acc)(values,0);
+        foreach (m in matches) {
+            List<Pair<Rat,Rat>> values = m.values();
+            if (length(values) == 1) toRet = toRet + fst(nth(values,0));
+            else {
+                values = filter((Pair<Rat,Rat> p) => snd(p) >= start && snd(p) < end)(values);
+                toRet = toRet + foldl((Pair<Rat,Rat> m, Rat acc) => fst(m) + acc)(values,0);
+            }
         }
         return toRet;
     }
 
-    Metric getMetric(String metric, String key) {
-        Metric found = null;
+    List<Metric> getMetrics(String metric, String key) {
+        List<Metric> found = list[];
         Int i = 0;
 
         while (i < length(metrics)) {
             Metric curr = nth(metrics,i);
             Pair<String,String> id = curr.id();
             if (id == Pair(metric,key)) {
-                found = curr;
-                i = length(metrics);
+                found = appendright(found,curr);
             }
             i = i + 1;
         }
