@@ -9,25 +9,22 @@ import * from Param;
 
 interface Metric {
     Pair<String,String> id();
-    Rat value(); 
+    List<Pair<Rat,Rat>> values(); //list of (value,timestamp)
    [Atomic] Unit push(Rat val);
-   Unit flush();
 }
 
 class DiscreteMetric(Pair<String,String> id) implements Metric {
-    Rat value = 0;
+    List<Pair<Rat,Rat>> values = list[];
     Pair<String,String> id() {return id;}
-    Rat value() { return value; }
-    [Atomic] Unit push(Rat val)  { value = value + val; }
-    Unit flush() {value = 0;}
+    List<Pair<Rat,Rat>> values() { return values; }
+    [Atomic] Unit push(Rat val)  { values = appendright(values,Pair(val,timeValue(now()))); }
 }
 
 class InstantMetric(Pair<String,String> id) implements Metric {
-    Rat value = 0;
+    List<Pair<Rat,Rat>> values = list[];
     Pair<String,String> id() {return id;}
-    Rat value() { return value; }
-    [Atomic] Unit push(Rat val)  { value = val; }
-    Unit flush() {}
+    List<Pair<Rat,Rat>> values() { return values; }
+    [Atomic] Unit push(Rat val)  { values = list[Pair(val,timeValue(now()))]; }
 }
 
 
@@ -36,7 +33,6 @@ class InstantMetric(Pair<String,String> id) implements Metric {
 interface PrometheusInterface {
     [Atomic] Unit register(List<Metric> ms);
     Rat getV(String metric, String key, Rat start, Rat end);
-    Unit flush();
 }
 
 
@@ -50,15 +46,14 @@ class Prometheus() implements PrometheusInterface {
 
     Rat getV(String metric, String key, Rat start, Rat end) {
         Metric m = this.getMetric(metric,key);
+        List<Pair<Rat,Rat>> values = m.values();
         Rat toRet = 0;
-        if (m == null) {
-            println("ERROR: Metric not found for id = " + metric + ", key = " + key);
-        } else {toRet = m.value();}
+        if (length(values) == 1) toRet = fst(nth(values,0));
+        else {
+            values = filter((Pair<Rat,Rat> p) => snd(p) >= start && snd(p) < end)(values);
+            toRet = foldl((Pair<Rat,Rat> m, Rat acc) => fst(m) + acc)(values,0);
+        }
         return toRet;
-    }
-
-    Unit flush() {
-        foreach (m in metrics) m.flush();
     }
 
     Metric getMetric(String metric, String key) {

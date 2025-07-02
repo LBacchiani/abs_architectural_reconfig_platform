@@ -14,21 +14,22 @@ interface AdaptationAlgorithm {
 class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface prom) implements AdaptationAlgorithm {
     List<Int> deployedDeltas = list[];
     Metric mclMetric;
-    Metric inst;
-    List<Int> currConfig = base_config();
+    Metric instMetric;
+
 
     {
-        mclMetric = new local InstantMetric(Pair("supp","system"));
-        inst = new local InstantMetric(Pair("inst", "system"));
-        prom.register(list[mclMetric,inst]);
+        mclMetric = new local InstantMetric(Pair("supp",global_service_name()));
+        instMetric = new local InstantMetric(Pair("inst", global_service_name()));
+        prom.register(list[mclMetric,instMetric]);
         Int i = length(orchestrations);
         while (i > 0) {
             deployedDeltas = appendright(deployedDeltas,0);
             i = i - 1;
         }
-        Rat mcl = this.mcl(currConfig);
+        Rat mcl = this.mcl(base_config());
         mclMetric.push(mcl);
-        inst.push(foldl((Int v, Int acc) => v + acc)(currConfig,0));
+        Rat inst = this.instances(base_config());
+        instMetric.push(inst);
     }
 
     Unit adapt(Map<String,Rat> metrics) {
@@ -72,8 +73,8 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
             }
             config = candidateConfig;
         }
-        currConfig = config;
-        inst.push(foldl((Int v, Int acc) => v + acc)(currConfig,0));
+        Int instances = this.instances(config);
+        instMetric.push(instances);
         mclMetric.push(mcl);
         return configDeltas;
     }
@@ -105,6 +106,12 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
         while(nDeltas > 0) { empty = appendright(empty, 0); nDeltas = nDeltas - 1;}
         return empty;
     }
+
+   [Atomic] Int instances(List<Int> ls) {
+    Int ret = 0;
+    foreach (l in ls) ret = ret + l;
+    return ret;
+   }
 
 
     List<Int> incDeltas(Int index, List<Int> configDeltas) {
