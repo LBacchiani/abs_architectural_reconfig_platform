@@ -150,7 +150,7 @@ class WebUI(PrometheusInterface prometheus, PersistenceLoadBalancerInterface per
             stop = timeValue(now());
             globalCompleted.push(1);
             globalLatency.push(stop - start);
-        }  else {
+        } else {
             balancer!addLoss();
         }
         return res;
