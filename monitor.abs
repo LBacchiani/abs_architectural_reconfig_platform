@@ -23,7 +23,7 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
 
     Unit run() {
         logger!log(dur,0,0,map[]);
-        while(dur < length(workload())) {
+        while(dur <= length(workload()) / monitoring_window()) {
             await duration(monitoring_window() * time_unit_to_sec());
             dur = dur + 1;
             Rat start = timeValue(now()) - (monitoring_window() * time_unit_to_sec());
@@ -41,9 +41,9 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
                 }
                 metrics = put(metrics, m, val);
             }
+            prom!flush();
             if (threshold(metrics)) alg!adapt(metrics);
             logger!log(dur,start,end,metrics);
-            prom!flush();
         }
     }
 }

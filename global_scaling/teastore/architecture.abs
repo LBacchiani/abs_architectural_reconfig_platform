@@ -96,13 +96,13 @@ class WebUI(PrometheusInterface prometheus, PersistenceLoadBalancerInterface per
     Metric completed;
     Metric globalLatency;
     Metric globalCompleted;
-
     {
         completed = new local DiscreteMetric(Pair("comp","WebUI"));
         globalCompleted = new local DiscreteMetric(Pair("comp", global_service_name()));
         globalLatency = new local DiscreteMetric(Pair("latency", global_service_name()));
         prometheus!register(list[completed,globalCompleted,globalLatency]);        
     }
+
     Result unfoldOptional(Maybe<Fut<Result>> result) {
         Result res = Failure;
         switch(result) {
@@ -141,6 +141,7 @@ class WebUI(PrometheusInterface prometheus, PersistenceLoadBalancerInterface per
                     else {
                         result = await image!request();
                         res = this.unfoldOptional(result);
+                        if (res == Failure) n = 0;
                     }
                 }
             }
@@ -381,7 +382,7 @@ interface RecommenderLoadBalancerInterface {
 [SmartDeployCost : "{\"class\" : \"RecommenderLoadBalancer\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 100,\"Memory\" : 100},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}],\"methods\" : [{\"add\" : {\"name\" : \"connectInstance\",\"param_type\" : \"RecommenderInterface\"},\"remove\" : {\"name\" : \"disconnectInstance\", \"return_type\": \"RecommenderInterface\"}}]}]}"]
 class RecommenderLoadBalancer(PrometheusInterface prometheus) implements RecommenderLoadBalancerInterface {
     List<RecommenderInterface> instancesConnected = list[];
-    Int pending = 0;
+    // Int pending = 0;
     Int nextInstance = -1;
     // Metric total;
 
@@ -404,18 +405,18 @@ class RecommenderLoadBalancer(PrometheusInterface prometheus) implements Recomme
      Maybe<Fut<Result>> request() {
         Maybe<Fut<Result>> res = Nothing;
         // total!push(1);
-        if(pending < buffer_size()) {
+        // if(pending < buffer_size()) {
             nextInstance = (nextInstance + 1) % length(instancesConnected);
             RecommenderInterface selectedInstance = nth(instancesConnected, nextInstance);
-            pending = pending + 1;
+            // pending = pending + 1;
             Rat start = timeValue(now());
             Fut<Result> req = selectedInstance!request(this, start);
             res = Just(req);
-        } 
+        // } 
         return res;
     }
 
-    Unit removeMessage() {pending = pending - 1;}
+    Unit removeMessage() {}
 }
 
 interface RecommenderInterface {
@@ -424,16 +425,7 @@ interface RecommenderInterface {
 
 [SmartDeployCost : "{\"class\" : \"Recommender\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 800, \"Memory\" : 512},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"}],\"methods\" : []}]}"]
 class Recommender(PrometheusInterface prometheus) implements RecommenderInterface {
-    Metric completed;
-    {
-        // completed = new local DiscreteMetric(Pair("comp","Recommender"));
-    //    prometheus!register(list[completed]);
-    }
     Result request(RecommenderLoadBalancerInterface balancer, Rat start) {
-        // [Cost: speed_per_core() * time_unit_to_sec() * recommenderCores() / nth(serviceMCLs(),3)] skip;
-        // Rat stop = timeValue(now());
-        // completed!push(1);
-        balancer!removeMessage();
         return Success;
     }
 }

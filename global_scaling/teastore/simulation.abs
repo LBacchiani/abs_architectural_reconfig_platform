@@ -32,8 +32,6 @@ class Simulation() implements ISimulation {
           Setup setup = new Setup(cp, prometheus);
           await setup!deploy();
 
-          await duration(10);
-
           List<ImageLoadBalancerInterface> imageLBList = await setup!getImageLoadBalancerInterface();
           ImageLoadBalancerInterface imageLB = head(imageLBList);
 

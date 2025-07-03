@@ -28,6 +28,6 @@ class Logger(PrometheusInterface prom) implements ILogger {
             completed = 0.0;
         }
 
-        println(toString(time * monitoring_window()) +  " " + toString(avgLat * float(time_unit_to_sec())) + " measured: " +  toString(float(rat(total)/monitoring_window())) + " tot: " + toString(total) + " comp: " + toString(completed) + " rej: " + toString(loss) + " supp: " + toString(mcl) + " inst: " + toString(inst));
+        println(toString(time * monitoring_window()) +  " " + toString(avgLat * float(1000/time_unit_to_sec())) + " measured: " +  toString(float(rat(total)/monitoring_window())) + " tot: " + toString(total) + " comp: " + toString(completed) + " rej: " + toString(loss) + " supp: " + toString(mcl) + " inst: " + toString(inst));
     }
 }

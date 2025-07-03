@@ -41,6 +41,7 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
     Unit scale(List<Int> configDeltas) {
         Int i = 0;
         Int numScales = length(orchestrations);
+
         while(i < numScales) {
             Int diff = nth(configDeltas,i) - nth(deployedDeltas,i);
             Rat num = abs(diff);

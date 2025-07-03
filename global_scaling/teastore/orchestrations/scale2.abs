@@ -44,7 +44,7 @@ class Scale2(CloudProvider cloudProvider, AuthLoadBalancerInterface authLB, WebU
 	List<PersistenceInterface> ls_PersistenceInterface = Nil;
 	List<List<DeploymentComponent>> ls_ls_DeploymentComponent = Nil;
 	List<DeploymentComponent> ls_DeploymentComponent = Nil;
-	Rat waiting_time = 30;
+	Rat waiting_time = 1/10;
 	{
 		cloudProvider.addInstanceDescription(Pair("c4_4xlarge",
 			map[Pair(CostPerInterval,796)
