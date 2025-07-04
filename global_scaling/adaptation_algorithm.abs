@@ -2,7 +2,6 @@ module Adaptation;
 
 export *;
 import * from Wrapper;
-import * from Sys_Param;
 import * from Reconfig_Param; 
 import * from Prometheus;
 import * from Param;

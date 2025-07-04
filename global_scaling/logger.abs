@@ -3,7 +3,6 @@ module Logger;
 export *;
 
 import * from Prometheus;
-import * from Sys_Param;
 import * from Reconfig_Param;
 import * from Param;
 
@@ -22,7 +21,7 @@ class Logger(PrometheusInterface prom) implements ILogger {
         Float mcl = float(lookupDefault(metrics,"supp",0));
         Float inst = float(lookupDefault(metrics,"inst",0));
         Float completed = when lookupDefault(metrics,"comp",0) == 0 then -1.0 else float(lookupDefault(metrics,"comp",0));
-        Float avgLat = when lookupDefault(metrics,"latency",0) == 0 then 0.01 else float(lookupDefault(metrics,"latency",0)/rat(completed));
+        Float avgLat = when lookupDefault(metrics,"latency",0) == 0 then 0.0001 else float(lookupDefault(metrics,"latency",0)/rat(completed));
         if (total == 0.0) {
             avgLat = 0.0; 
             completed = 0.0;

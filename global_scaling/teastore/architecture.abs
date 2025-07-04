@@ -4,7 +4,6 @@ export *;
 import * from ABS.DC;
 import * from ABS.SmartDeploy;
 import * from Prometheus;
-import * from Sys_Param;
 import * from Param;
 import * from Reconfig_Param;
 

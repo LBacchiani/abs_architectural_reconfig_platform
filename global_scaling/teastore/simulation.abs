@@ -11,7 +11,6 @@ import * from Wrapper;
 import * from WorkloadGenerator;
 import * from Adaptation;
 import * from Prometheus;
-import * from Sys_Param;
 import * from Reconfig_Param;
 import * from Param;
 

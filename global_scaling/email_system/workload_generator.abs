@@ -9,7 +9,7 @@ import * from Param;
 
 interface WorkloadGeneratorInterface {}
 
-class WorkloadGenerator(WebUILoadBalancerInterface webUI) implements WorkloadGeneratorInterface {
+class WorkloadGenerator(MessageParser_LoadBalancerInterface parser) implements WorkloadGeneratorInterface {
 
     Int i = 0;
 
@@ -19,7 +19,7 @@ class WorkloadGenerator(WebUILoadBalancerInterface webUI) implements WorkloadGen
             i = i + 1; //(i + 1) % length(workload());
             Int j = 0;
             while(j < curr) {
-                webUI!request();
+                parser!newRequest("Message");
                 await duration(sendingWin() * time_unit_to_sec() / curr);
                 j = j + 1;
             }

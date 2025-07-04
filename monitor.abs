@@ -7,7 +7,6 @@ import * from Param;
 import * from Reconfig_Param;
 import * from Prometheus;
 import * from Adaptation;
-import * from Sys_Param;
 
 
 
@@ -31,14 +30,6 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
             Map<String,Rat> metrics = map[];
             foreach (m in global_metrics()) {
                 Rat val = await prom!getV(m, global_service_name(), start, end);
-                metrics = put(metrics, m, val);
-            }
-            foreach (m in service_metrics()) {
-                Rat val = 0;
-                foreach (s in services()) {
-                    Rat tmp = await prom!getV(m, s, start, end);
-                    val = val + tmp;
-                }
                 metrics = put(metrics, m, val);
             }
             prom!flush();
