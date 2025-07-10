@@ -1,0 +1,110 @@
+module AttachmentsManagerPlan;
+export *;
+import * from ABS.DC;
+import * from Architecture;
+import * from DB;
+import * from Prometheus;
+
+interface AttachmentsManagerPlan{
+	List<AttachmentsManagerInterface> getAttachmentsManagerInterface();
+	List<DeploymentComponent> getDeploymentComponent();
+	Unit deploy();
+	Unit undeploy();
+}
+
+class AttachmentsManagerPlan(CloudProvider cloudProvider, PrometheusInterface prometheus, AttachmentsManager_LoadBalancerInterface attachmentsManager_LoadBalancerObj, ImageAnalyser_LoadBalancerInterface imageAnalyser_LoadBalancerObj) implements AttachmentsManagerPlan{
+
+	List<List<AttachmentsManagerInterface>> ls_ls_AttachmentsManagerInterface = Nil;
+	List<AttachmentsManagerInterface> ls_AttachmentsManagerInterface = Nil;
+	List<List<DeploymentComponent>> ls_ls_DeploymentComponent = Nil;
+	List<DeploymentComponent> ls_DeploymentComponent = Nil;
+	Rat waiting_time = 1/10;
+	{
+		cloudProvider.addInstanceDescription(Pair("c4_xlarge",
+			map[Pair(CostPerInterval,237)
+			,Pair(PaymentInterval,1)
+			,Pair(Bandwidth,750)
+			,Pair(Memory,750)
+			,Pair(Cores,4)
+			,Pair(Speed,20)
+			]));
+		cloudProvider.addInstanceDescription(Pair("c4_large",
+			map[Pair(CostPerInterval,119)
+			,Pair(PaymentInterval,1)
+			,Pair(Bandwidth,500)
+			,Pair(Memory,375)
+			,Pair(Cores,2)
+			,Pair(Speed,10)
+			]));
+		cloudProvider.addInstanceDescription(Pair("c4_2xlarge",
+			map[Pair(CostPerInterval,476)
+			,Pair(PaymentInterval,1)
+			,Pair(Bandwidth,1000)
+			,Pair(Memory,1500)
+			,Pair(Cores,8)
+			,Pair(Speed,40)
+			]));
+	}
+
+	List<AttachmentsManagerInterface> getAttachmentsManagerInterface() { return ls_AttachmentsManagerInterface; }
+	List<DeploymentComponent> getDeploymentComponent() { return ls_DeploymentComponent; }
+
+	Unit deploy() {
+		ls_ls_AttachmentsManagerInterface = Cons(ls_AttachmentsManagerInterface,ls_ls_AttachmentsManagerInterface);
+		ls_AttachmentsManagerInterface = Nil;
+		ls_ls_DeploymentComponent = Cons(ls_DeploymentComponent,ls_ls_DeploymentComponent);
+		ls_DeploymentComponent = Nil;
+		this.deploy_aux();
+	}
+
+	Unit undeploy() {
+		if (ls_ls_DeploymentComponent != Nil) {
+			this.undeploy_aux();
+			ls_DeploymentComponent = head(ls_ls_DeploymentComponent);
+			ls_ls_DeploymentComponent = tail(ls_ls_DeploymentComponent);
+				ls_AttachmentsManagerInterface = head(ls_ls_AttachmentsManagerInterface);
+			ls_ls_AttachmentsManagerInterface = tail(ls_ls_AttachmentsManagerInterface);
+		}
+	}
+
+
+	Unit deploy_aux() {
+		Map<DeploymentComponent,Rat> speedPatchMap = map[];
+		DeploymentComponent c4_large_0 = cloudProvider.launchInstanceNamed("c4_large");
+		ls_DeploymentComponent = Cons(c4_large_0,ls_DeploymentComponent);
+		speedPatchMap = put(speedPatchMap,c4_large_0,0);
+		[DC: c4_large_0] AttachmentsManagerInterface odefault___AttachmentsManager_0_c4_large_0 = new AttachmentsManager(prometheus, imageAnalyser_LoadBalancerObj);
+		Rat coreRequired_odefault___AttachmentsManager_0_c4_large_0 = 1;
+		speedPatchMap = put(speedPatchMap, c4_large_0, fromJust(lookup(speedPatchMap,c4_large_0)) + coreRequired_odefault___AttachmentsManager_0_c4_large_0);
+		ls_AttachmentsManagerInterface = Cons(odefault___AttachmentsManager_0_c4_large_0, ls_AttachmentsManagerInterface);
+		this!patchSpeed(speedPatchMap);
+		await duration(waiting_time,waiting_time);
+		attachmentsManager_LoadBalancerObj.connectInstance(odefault___AttachmentsManager_0_c4_large_0);
+	}
+
+	Unit undeploy_aux() {
+		AttachmentsManagerInterface odefault___AttachmentsManager_0_c4_large_0 = nth(ls_AttachmentsManagerInterface,0);
+		attachmentsManager_LoadBalancerObj.disconnectInstance();
+		while ( !isEmpty(ls_DeploymentComponent) ) {
+			cloudProvider.shutdownInstance(head(ls_DeploymentComponent));
+			ls_DeploymentComponent = tail(ls_DeploymentComponent);
+		}
+	}
+
+	Unit patchSpeed(Map<DeploymentComponent,Rat> dcs) {
+		foreach(entry in entries(dcs)) {
+			DeploymentComponent dc = fst(entry);
+			Rat coreUsed = snd(entry);
+			InfRat speed_aux = await dc!total(Speed);
+			Rat total_speed = case speed_aux {
+				Fin(x) => x;
+				_ => -1;
+			};
+			if(total_speed != -1) {
+				Rat totalCore = await dc!getNumberOfCores();
+				Rat speedPerCore = total_speed / totalCore;
+				dc!decrementResources(total_speed - (speedPerCore * coreUsed), Speed);
+			}
+		}
+	}
+}

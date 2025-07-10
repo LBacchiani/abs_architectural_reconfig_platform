@@ -5,18 +5,21 @@ import * from Wrapper;
 import * from Reconfig_Param; 
 import * from Prometheus;
 import * from Param;
+import * from Actuation;
 
 interface AdaptationAlgorithm {
-    Unit adapt(Map<String,Rat> metrics);
+    Unit adapt(Map<String,Rat> metrics, Int time);
 }
 
 class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface prom) implements AdaptationAlgorithm {
     List<Int> deployedDeltas = list[];
     Metric mclMetric;
     Metric instMetric;
-
+    ActuationModuleInterface actuation; 
+    List<Int> last_pred_config  = base_config();
 
     {
+        actuation = new ActuationModule();
         mclMetric = new local InstantMetric(Pair("supp",global_service_name()));
         instMetric = new local InstantMetric(Pair("inst", global_service_name()));
         prom!register(list[mclMetric,instMetric]);
@@ -31,8 +34,19 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
         instMetric!push(inst);
     }
 
-    Unit adapt(Map<String,Rat> metrics) {
-        Rat target = lookupUnsafe(metrics,"tot")/monitoring_window();
+    Unit adapt(Map<String,Rat> metrics, Int time) {
+        Rat target = lookupUnsafe(metrics,"tot" + global_service_name())/monitoring_window();
+        if (proactiveness()) {
+            Rat predicted = foldl((Rat e, Rat acc) => e + acc)(lookupUnsafe(predicted_workload(),time),0);
+            if (mixing()) {
+                List<Int> actual_conf = this.computeConfiguration(target);  
+                target = await actuation!mix(target, predicted/monitoring_window(), last_pred_config, actual_conf);
+                last_pred_config = this.computeConfiguration(predicted/monitoring_window());
+            } else {
+                target = predicted/monitoring_window();
+            }
+        }
+        List<Int> config = this.computeConfiguration(target);  
         List<Int> configDeltas = this.computeConfiguration(target);
         this.scale(configDeltas);
     }

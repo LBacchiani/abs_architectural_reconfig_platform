@@ -29,7 +29,6 @@ def Rat speed_per_core() = 5;
 def Int kbig() = 10;
 def Int k() = 8;
 
-def List<List<Int>> scale_config() = list[list[2,1,1,0,2],list[1,1,1,0,2]];
 def List<Int> base_config() = list[1,1,1,1,2];
 
 def List<Int> workload() = list[

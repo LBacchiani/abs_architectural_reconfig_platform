@@ -1,0 +1,132 @@
+module Architecture;
+
+export *;
+
+import * from Param;
+import * from ABS.DC;
+import * from ABS.SmartDeploy;
+import * from Prometheus;
+
+
+
+[SmartDeployCloudProvider: "{\"cloud\" : {\"cost\" : 100, \"payment_interval\" : 1, \"resources\" : { \"Cores\" : 4, \"Memory\" : 500, \"Bandwidth\" : 1000, \"Speed\" : 10, \"Startupduration\" : 0}},\"edge\" : {\"cost\" : 100, \"payment_interval\" : 1, \"resources\" : { \"Cores\" : 4, \"Memory\" : 500, \"Bandwidth\" : 1000, \"Speed\" : 10, \"Startupduration\" : 0}}}"]
+
+[SmartDeploy : "{\"id\":\"Setup\",\"specification\":\"Data_Alert = 1 and Data_Collector = 1 and cloud.Data_Alert = 1 and edge.Data_Collector = 1\", \"DC\":[], \"obj\":[{\"name\":\"prometheus\",\"interface\":\"PrometheusInterface\",\"provides\":[{\"ports\":[\"PrometheusInterface\"],\"num\":-1}],\"methods\" : []}, {\"name\":\"id\",\"interface\":\"Int\",\"provides\":[{\"ports\":[\"Int\"],\"num\":-1}],\"methods\" : []}], \"cloud_provider_DC_availability\":{\"cloud\" : 1, \"edge\" : 1},\"bind preferences\":[]}"]
+
+// [SmartDeploy : "{\"id\":\"ToCloudMigration\",\"specification\":\"Data_Processor = 1\", \"DC\":[], \"obj\":[{\"name\":\"prometheus\",\"interface\":\"PrometheusInterface\",\"provides\":[{\"ports\":[\"PrometheusInterface\"],\"num\":-1}],\"methods\" : []},{\"name\":\"id\",\"interface\":\"Int\",\"provides\":[{\"ports\":[\"Int\"],\"num\":-1}],\"methods\" : []},{\"name\":\"data_collector\",\"interface\":\"IData_Collector\",\"provides\":[{\"ports\":[\"IData_Collector\"],\"num\":-1}],\"methods\" : []},{\"name\":\"data_alert\",\"interface\":\"IData_Alert\",\"provides\":[{\"ports\":[\"IData_Alert\"],\"num\":-1}], \"methods\" : [{\"add\" : {\"name\" : \"connect\",\"param_type\" : \"IData_Processor\"},  \"remove\" : {\"name\" : \"disconnect\",\"return_type\" : \"IData_Processor\"}}]}], \"cloud_provider_DC_availability\":{\"edge\" : 1},\"bind preferences\":[\"local\",\"sum ?x of type Data_Processor in '.*' : forall ?y of type data_alert in '.*' : ?x used by ?y\"]}"]
+
+// [SmartDeploy : "{\"id\":\"ToEdgeMigration\",\"specification\":\"Data_Processor = 1\", \"DC\":[], \"obj\":[{\"name\":\"prometheus\",\"interface\":\"PrometheusInterface\",\"provides\":[{\"ports\":[\"PrometheusInterface\"],\"num\":-1}],\"methods\" : []},{\"name\":\"id\",\"interface\":\"Int\",\"provides\":[{\"ports\":[\"Int\"],\"num\":-1}],\"methods\" : []},{\"name\":\"data_collector\",\"interface\":\"IData_Collector\",\"provides\":[{\"ports\":[\"IData_Collector\"],\"num\":-1}],\"methods\" : []},{\"name\":\"data_alert\",\"interface\":\"IData_Alert\",\"provides\":[{\"ports\":[\"IData_Alert\"],\"num\":-1}], \"methods\" : [{\"add\" : {\"name\" : \"connect\",\"param_type\" : \"IData_Processor\"},  \"remove\" : {\"name\" : \"disconnect\",\"return_type\" : \"IData_Processor\"}}]}], \"cloud_provider_DC_availability\":{\"edge\" : 1},\"bind preferences\":[\"local\",\"sum ?x of type Data_Processor in '.*' : forall ?y of type data_alert in '.*' : ?x used by ?y\"]}"]
+
+
+
+
+interface IData_Alert {
+    Unit connect(IData_Processor dp);
+    IData_Processor disconnect();
+}
+
+[SmartDeployCost : "{\"class\" : \"Data_Alert\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 1,\"Memory\" : 50}, \"sig\":[], \"methods\" : [{\"add\" : {\"name\" : \"connect\",\"param_type\" : \"IData_Processor\"}, \"remove\" : {\"name\" : \"diconnect\", \"return_type\" : \"IData_Processor\"}}]}]}"]
+class Data_Alert() implements IData_Alert {
+    List<IData_Processor> instances = list[];
+
+    Unit connect(IData_Processor dp) {instances = appendright(instances, dp);}
+
+    IData_Processor disconnect() {
+        IData_Processor removedInstance = nth(instances, 0);
+        instances = without(instances, removedInstance);
+        return removedInstance;
+    }
+
+    Unit run() {
+        Rat started = timeValue(now());
+        Rat time = 0;
+        await length(instances) > 0;
+
+        while(True) {
+            await duration(req_inverval() * time_unit_to_sec());
+            nth(instances,0)!request();
+            time = timeValue(now());
+        }
+    }
+}
+
+interface IData_Collector {
+    Rat getData();
+    Unit setSize(); 
+}
+
+[SmartDeployCost : "{\"class\" : \"Data_Collector\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 1,\"Memory\" : 100}, \"sig\":[{\"kind\" : \"require\",\"type\" : \"Int\"}], \"methods\" : []}]}"]
+class Data_Collector(Int id) implements IData_Collector {
+
+    Int index = 0;
+    Rat size = nth(nth(sizes(),id), index);
+
+    Unit setSize() {
+        // Rat p = random(1000) / 1000;
+        // p = p * 100;
+        // Rat prob = error_prob(nth(nth(sizes(),id), index % size_length()));
+        // if(p < prob) await duration(req_inverval());
+        index = index + 1;
+        size = nth(nth(sizes(),id), index % size_length());
+        
+    }
+
+    Rat getData() {
+        Rat s_i = compute_data_size_to_send(size);
+        Rat b_i = predict_bandwidth(size);
+        Rat avg_edge_lat_i = s_i / b_i;
+        [DataSize: avg_edge_lat_i * bandwidth()] return s_i;
+    }
+}
+
+interface IData_Processor {
+    Unit request();
+}
+
+[SmartDeployCost : "{\"class\" : \"Data_Processor\",\"scenarios\" : [{\"name\" : \"default\",\"provide\" : -1,\"cost\" : {\"Cores\" : 1,\"Memory\" : 100},\"sig\" : [{\"kind\" : \"require\",\"type\" : \"PrometheusInterface\"},{\"kind\" : \"require\",\"type\" : \"IData_Collector\"},{\"kind\" : \"require\",\"type\" : \"Int\"}], \"methods\" : []}]}"]
+class Data_Processor(PrometheusInterface prom, IData_Collector data_collector, Int id) implements IData_Processor {
+
+    Metric reqs;
+    Metric lat;
+    Metric size;
+    String name = "";
+
+    {
+        name = this.getDCName();
+        reqs = new DiscreteMetric(Pair("reqs","DataProcessor" + toString(id)));
+        lat  = new DiscreteMetric(Pair("lat","DataProcessor" + toString(id)));
+        size = new DiscreteMetric(Pair("size","DataProcessor" + toString(id)));
+        prom!register(list[reqs,lat,size]);
+    }
+
+    Unit request() {
+        Time start = now();
+        Rat data_size = await data_collector!getData();
+        Rat time_elapsed = timeDifference(start,now());
+        if(name == "cloud") {
+            Rat speed = this.getSpeed();
+            [Cost:  speed * slowdown_factor() * time_unit_to_sec()] skip;
+        }
+        time_elapsed = timeDifference(start,now());
+        reqs!push(1);
+        lat!push(time_elapsed);
+        size!push(data_size);
+    }
+
+    [Atomic] String getDCName() {
+        DC dc = thisDC();
+        String name = dc.getName();
+        return substr(name, 14, 5);
+    }
+
+    Rat getSpeed() {
+        DC dc = thisDC();
+        InfRat tmp = dc.total(Speed);
+        Rat speed = 0;
+        switch(tmp) {
+            Fin(x) => speed = x;
+            _ => speed = -1;
+        }
+        return speed;
+    }
+}

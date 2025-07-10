@@ -1,0 +1,8 @@
+module Reconfig_Param;
+
+export *;
+
+
+
+def List<String> service_metrics() = list["inst","tot"];
+def List<String> global_metrics() = list["tot", "comp", "latency", "supp", "rej", "inst"];

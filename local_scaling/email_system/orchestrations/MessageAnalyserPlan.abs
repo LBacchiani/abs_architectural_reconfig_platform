@@ -1,0 +1,110 @@
+module MessageAnalyserPlan;
+export *;
+import * from ABS.DC;
+import * from Architecture;
+import * from DB;
+import * from Prometheus;
+
+interface MessageAnalyserPlan{
+	List<MessageAnalyserInterface> getMessageAnalyserInterface();
+	List<DeploymentComponent> getDeploymentComponent();
+	Unit deploy();
+	Unit undeploy();
+}
+
+class MessageAnalyserPlan(CloudProvider cloudProvider, PrometheusInterface prometheus, MessageAnalyser_LoadBalancerInterface messageAnalyser_LoadBalancerObj, DBInterface dbObj) implements MessageAnalyserPlan{
+
+	List<List<MessageAnalyserInterface>> ls_ls_MessageAnalyserInterface = Nil;
+	List<MessageAnalyserInterface> ls_MessageAnalyserInterface = Nil;
+	List<List<DeploymentComponent>> ls_ls_DeploymentComponent = Nil;
+	List<DeploymentComponent> ls_DeploymentComponent = Nil;
+	Rat waiting_time = 1/10;
+	{
+		cloudProvider.addInstanceDescription(Pair("c4_xlarge",
+			map[Pair(CostPerInterval,237)
+			,Pair(PaymentInterval,1)
+			,Pair(Bandwidth,750)
+			,Pair(Memory,750)
+			,Pair(Cores,4)
+			,Pair(Speed,20)
+			]));
+		cloudProvider.addInstanceDescription(Pair("c4_large",
+			map[Pair(CostPerInterval,119)
+			,Pair(PaymentInterval,1)
+			,Pair(Bandwidth,500)
+			,Pair(Memory,375)
+			,Pair(Cores,2)
+			,Pair(Speed,10)
+			]));
+		cloudProvider.addInstanceDescription(Pair("c4_2xlarge",
+			map[Pair(CostPerInterval,476)
+			,Pair(PaymentInterval,1)
+			,Pair(Bandwidth,1000)
+			,Pair(Memory,1500)
+			,Pair(Cores,8)
+			,Pair(Speed,40)
+			]));
+	}
+
+	List<MessageAnalyserInterface> getMessageAnalyserInterface() { return ls_MessageAnalyserInterface; }
+	List<DeploymentComponent> getDeploymentComponent() { return ls_DeploymentComponent; }
+
+	Unit deploy() {
+		ls_ls_MessageAnalyserInterface = Cons(ls_MessageAnalyserInterface,ls_ls_MessageAnalyserInterface);
+		ls_MessageAnalyserInterface = Nil;
+		ls_ls_DeploymentComponent = Cons(ls_DeploymentComponent,ls_ls_DeploymentComponent);
+		ls_DeploymentComponent = Nil;
+		this.deploy_aux();
+	}
+
+	Unit undeploy() {
+		if (ls_ls_DeploymentComponent != Nil) {
+			this.undeploy_aux();
+			ls_DeploymentComponent = head(ls_ls_DeploymentComponent);
+			ls_ls_DeploymentComponent = tail(ls_ls_DeploymentComponent);
+				ls_MessageAnalyserInterface = head(ls_ls_MessageAnalyserInterface);
+			ls_ls_MessageAnalyserInterface = tail(ls_ls_MessageAnalyserInterface);
+		}
+	}
+
+
+	Unit deploy_aux() {
+		Map<DeploymentComponent,Rat> speedPatchMap = map[];
+		DeploymentComponent c4_large_0 = cloudProvider.launchInstanceNamed("c4_large");
+		ls_DeploymentComponent = Cons(c4_large_0,ls_DeploymentComponent);
+		speedPatchMap = put(speedPatchMap,c4_large_0,0);
+		[DC: c4_large_0] MessageAnalyserInterface odefault___MessageAnalyser_0_c4_large_0 = new MessageAnalyser(prometheus, dbObj);
+		Rat coreRequired_odefault___MessageAnalyser_0_c4_large_0 = 1;
+		speedPatchMap = put(speedPatchMap, c4_large_0, fromJust(lookup(speedPatchMap,c4_large_0)) + coreRequired_odefault___MessageAnalyser_0_c4_large_0);
+		ls_MessageAnalyserInterface = Cons(odefault___MessageAnalyser_0_c4_large_0, ls_MessageAnalyserInterface);
+		this!patchSpeed(speedPatchMap);
+		await duration(waiting_time,waiting_time);
+		messageAnalyser_LoadBalancerObj.connectInstance(odefault___MessageAnalyser_0_c4_large_0);
+	}
+
+	Unit undeploy_aux() {
+		MessageAnalyserInterface odefault___MessageAnalyser_0_c4_large_0 = nth(ls_MessageAnalyserInterface,0);
+		messageAnalyser_LoadBalancerObj.disconnectInstance();
+		while ( !isEmpty(ls_DeploymentComponent) ) {
+			cloudProvider.shutdownInstance(head(ls_DeploymentComponent));
+			ls_DeploymentComponent = tail(ls_DeploymentComponent);
+		}
+	}
+
+	Unit patchSpeed(Map<DeploymentComponent,Rat> dcs) {
+		foreach(entry in entries(dcs)) {
+			DeploymentComponent dc = fst(entry);
+			Rat coreUsed = snd(entry);
+			InfRat speed_aux = await dc!total(Speed);
+			Rat total_speed = case speed_aux {
+				Fin(x) => x;
+				_ => -1;
+			};
+			if(total_speed != -1) {
+				Rat totalCore = await dc!getNumberOfCores();
+				Rat speedPerCore = total_speed / totalCore;
+				dc!decrementResources(total_speed - (speedPerCore * coreUsed), Speed);
+			}
+		}
+	}
+}

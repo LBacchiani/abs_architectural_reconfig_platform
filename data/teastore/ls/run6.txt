@@ -1,0 +1,11 @@
+0 0.0 measured: 0.0 tot: 0.0 comp: 0.0 rej: 0.0 supp: 150.0 inst: 6.0
+20 120.76764709790262 measured: 174.7 tot: 3494.0 comp: 2846.0 rej: 0.0 supp: 150.0 inst: 6.0
+40 8715.031675190916 measured: 469.05 tot: 9381.0 comp: 2105.0 rej: 2066.0 supp: 190.0 inst: 7.0
+60 7942.059014152113 measured: 499.95 tot: 9999.0 comp: 6194.0 rej: 3041.0 supp: 200.0 inst: 12.0
+80 6286.780321811287 measured: 474.95 tot: 9499.0 comp: 8924.0 rej: 7248.0 supp: 500.0 inst: 18.0
+100 288.2634347989478 measured: 497.4 tot: 9948.0 comp: 10644.0 rej: 0.0 supp: 570.0 inst: 17.0
+120 0.0102010201020102 measured: 499.95 tot: 9999.0 comp: 9999.0 rej: 0.0 supp: 570.0 inst: 17.0
+140 0.005800580058005801 measured: 499.95 tot: 9999.0 comp: 9999.0 rej: 0.0 supp: 570.0 inst: 17.0
+160 0.005200520052005201 measured: 499.95 tot: 9999.0 comp: 9999.0 rej: 0.0 supp: 570.0 inst: 17.0
+180 0.006096394089132449 measured: 358.65 tot: 7173.0 comp: 7174.0 rej: 0.0 supp: 570.0 inst: 17.0
+200 0.1 measured: 55.75 tot: 1115.0 comp: 1116.0 rej: 0.0 supp: 380.0 inst: 12.0

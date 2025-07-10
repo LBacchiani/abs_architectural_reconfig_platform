@@ -3,12 +3,6 @@ module Architecture;
 export *;
 import * from ABS.DC;
 import * from ABS.SmartDeploy;
-import * from InvariantsDeployer;
-import * from BaseScale;
-import * from Scale1;
-import * from Scale2;
-import * from Scale3;
-import * from Scale4;
 import * from MsgRes;
 import * from DB;
 import * from Param;
@@ -308,6 +302,7 @@ class VirusScanner_LoadBalancer(PrometheusInterface prometheus,DBInterface db)  
   }
 
   Unit newRequest (String attachment, String messageId){
+    total!push(1);
     if(pending < buffer_size()) {
       nextInstance = (nextInstance + 1) % length(instancesConnected);
       VirusScannerInterface selectedInstance = nth(instancesConnected, nextInstance);

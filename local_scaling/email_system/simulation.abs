@@ -2,22 +2,21 @@ module Simulation;
 
 export *;
 import * from Monitor;
-import * from Architecture;
 import * from ABS.DC;
+import * from Architecture;
 import * from InvariantsDeployer;
 import * from BaseScale;
-import * from Scale1;
-import * from Scale2;
-import * from Scale3;
-import * from Scale4;
-import * from Wrapper;
 import * from WorkloadGenerator;
-import * from Adaptation;
 import * from Prometheus;
-import * from Reconfig_Param;
 import * from Param;
 import * from DB;
-import * from Actuation;
+import * from MessageParserPlan;
+import * from VirusScannerPlan;
+import * from AttachmentsManagerPlan;
+import * from ImageAnalyserPlan;
+import * from MessageAnalyserPlan;
+import * from LocalScaler;
+import * from Adaptation;
 
 interface ISimulation {
      Unit start();
@@ -50,26 +49,38 @@ class Simulation() implements ISimulation {
 	     List<MessageAnalyser_LoadBalancerInterface> messageAnalyser_LoadBalancerList = await c1!getMessageAnalyser_LoadBalancerInterface();
           MessageAnalyser_LoadBalancerInterface messageAnalyzerLB = head(messageAnalyser_LoadBalancerList);
 
+          MessageParserPlan mpp = new MessageParserPlan(cp, prometheus, parserLB, headerLB, linkLB, textLB, virusScannerLB, db, messageAnalyzerLB);
+          LocalScaler parserLS = new ParserScaler(prometheus, mpp);
+
+          LocalScaler hls = new HeaderScaler(prometheus);
+          
+          LocalScaler lls = new LinkScaler(prometheus);
+
+          LocalScaler tls = new TextScaler(prometheus);
+
+
+          VirusScannerPlan vsp = new VirusScannerPlan(cp, prometheus, virusScannerLB, messageAnalyzerLB, attManagerLB);
+          LocalScaler vsLS = new VirusScannerScaler(prometheus, vsp);
+
+          AttachmentsManagerPlan atp = new AttachmentsManagerPlan(cp, prometheus, attManagerLB, imageAnalyzerLB); 
+          LocalScaler amLS = new AttachmentsManagerScaler(prometheus, atp);
+
+          ImageAnalyserPlan iap = new ImageAnalyserPlan(cp, prometheus, imageAnalyzerLB, messageAnalyzerLB);
+          LocalScaler iaLS = new ImageAnalyserScaler(prometheus, iap);
+
+          MessageAnalyserPlan map = new MessageAnalyserPlan(cp, prometheus, messageAnalyzerLB, db);
+          LocalScaler mapLS = new MessageAnalyserScaler(prometheus, map);
+
+          List<LocalScaler> scalers = list[parserLS,hls, lls, tls, vsLS,amLS,iaLS,mapLS];
+
           ////SETUP///
           BaseScale c2 = new BaseScale(cp, prometheus, parserLB, headerLB, linkLB, textLB,  virusScannerLB, attManagerLB, imageAnalyzerLB, messageAnalyzerLB, db);
           await c2!deploy();
 
-          Scale1 s1 = new Scale1(cp, prometheus, parserLB, headerLB, linkLB, textLB,  virusScannerLB, attManagerLB, imageAnalyzerLB, messageAnalyzerLB, db);
-          WrapperScaleInterface w1 = new WrapperScale(s1, null, null, null);
+          AdaptationAlgorithm alg = new Algorithm(scalers);
 
-		Scale2 s2 = new Scale2(cp, prometheus, parserLB, headerLB, linkLB, textLB,  virusScannerLB, attManagerLB, imageAnalyzerLB, messageAnalyzerLB, db);
-          WrapperScaleInterface w2 = new WrapperScale(null, s2, null, null);
-
-          Scale3 s3 = new Scale3(cp, prometheus, parserLB, headerLB, linkLB, textLB,  virusScannerLB, attManagerLB, imageAnalyzerLB, messageAnalyzerLB, db);
-          WrapperScaleInterface w3 = new WrapperScale(null, null, s3, null);
-
-          Scale4 s4 = new Scale4(cp, prometheus, parserLB, headerLB, linkLB, textLB,  virusScannerLB, attManagerLB, imageAnalyzerLB, messageAnalyzerLB, db);
-          WrapperScaleInterface w4 = new WrapperScale(null, null, null, s4);
           
-          AdaptationAlgorithm gs_scaler = new GS_Scaler(list[w1,w2,w3,w4], prometheus);
-          new Monitor(prometheus, gs_scaler);
-          // Rat delay = (100 + random(1500)) / 1000; //delay in ms
-          // await duration(delay * time_unit_to_sec());
+          new Monitor(prometheus, alg);
           new WorkloadGenerator(parserLB);
      }
 }

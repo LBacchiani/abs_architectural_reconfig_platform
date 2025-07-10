@@ -1,0 +1,51 @@
+module Simulation;
+
+export *;
+import * from Monitor;
+import * from Architecture;
+import * from ABS.DC;
+import * from Setup;
+import * from ToCloudMigration;
+import * from ToEdgeMigration;
+import * from Adaptation;
+import * from Prometheus;
+import * from Param;
+
+interface ISimulation {
+     Unit start();
+}
+
+class Simulation() implements ISimulation {
+
+     Unit start() {
+
+          CloudProvider cp = new CloudProvider("CloudProvider");
+
+          PrometheusInterface prometheus = new Prometheus();
+          Int i = 0;
+          List<ToCloudMigration> cloud_migrations = list[];
+          List<ToEdgeMigration> edge_migrations = list[];
+          List<String> zones = list[];
+          Map<Int, IData_Collector> collectors = map[];
+          List<IData_Alert> alerts = list[];
+          ////SETUP///
+          while(i < n_pipelines()) {
+               Setup setup = new Setup(cp, prometheus, i);
+               await setup!deploy();
+               List<IData_Collector> tmpIData_Collector = await setup!getIData_Collector();
+               IData_Collector data_collector = head(tmpIData_Collector);
+               List<IData_Alert> tmpIData_Alert = await setup!getIData_Alert();
+               IData_Alert data_alert = head(tmpIData_Alert);
+               ToCloudMigration toCloud = new ToCloudMigration(cp, prometheus, i, data_collector, data_alert);
+               toCloud!deploy();
+               cloud_migrations = appendright(cloud_migrations, toCloud);
+               ToEdgeMigration toEdge = new ToEdgeMigration(cp, prometheus, i, data_collector, data_alert);
+               edge_migrations = appendright(edge_migrations, toEdge);
+               collectors = put(collectors, i, data_collector);
+               zones = appendright(zones, "cloud");
+               i = i + 1;
+          }
+          AdaptationAlgorithm alg = new Algorithm(prometheus, edge_migrations, cloud_migrations, zones, collectors);
+          new Monitor(prometheus, alg);
+     }
+}

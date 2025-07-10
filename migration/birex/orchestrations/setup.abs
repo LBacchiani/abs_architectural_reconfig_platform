@@ -1,0 +1,121 @@
+module Setup;
+export *;
+import * from ABS.DC;
+import * from Architecture;
+import * from Prometheus;
+
+interface Setup{
+        List<IData_Processor> getIData_Processor();
+        List<IData_Alert> getIData_Alert();
+        List<IData_Collector> getIData_Collector();
+        List<DeploymentComponent> getDeploymentComponent();
+        Unit deploy();
+        Unit undeploy();
+}
+
+class Setup(CloudProvider cloudProvider, PrometheusInterface prometheus, Int id) implements Setup{
+
+        List<List<IData_Processor>> ls_ls_IData_Processor = Nil;
+        List<IData_Processor> ls_IData_Processor = Nil;
+        List<List<IData_Alert>> ls_ls_IData_Alert = Nil;
+        List<IData_Alert> ls_IData_Alert = Nil;
+        List<List<IData_Collector>> ls_ls_IData_Collector = Nil;
+        List<IData_Collector> ls_IData_Collector = Nil;
+        List<List<DeploymentComponent>> ls_ls_DeploymentComponent = Nil;
+        List<DeploymentComponent> ls_DeploymentComponent = Nil;
+        {
+                cloudProvider.addInstanceDescription(Pair("cloud",
+                        map[Pair(CostPerInterval,100)
+                        ,Pair(PaymentInterval,1)
+                        ,Pair(Cores,4)
+                        ,Pair(Memory,500)
+                        ,Pair(Bandwidth,1000)
+                        ,Pair(Speed,10)
+                        ]));
+                cloudProvider.addInstanceDescription(Pair("edge",
+                        map[Pair(CostPerInterval,100)
+                        ,Pair(PaymentInterval,1)
+                        ,Pair(Cores,4)
+                        ,Pair(Memory,500)
+                        ,Pair(Bandwidth,1000)
+                        ,Pair(Speed,10)
+                        ]));
+        }
+
+        List<IData_Processor> getIData_Processor() { return ls_IData_Processor; }
+        List<IData_Alert> getIData_Alert() { return ls_IData_Alert; }
+        List<IData_Collector> getIData_Collector() { return ls_IData_Collector; }
+        List<DeploymentComponent> getDeploymentComponent() { return ls_DeploymentComponent; }
+
+        Unit deploy() {
+                ls_ls_IData_Processor = Cons(ls_IData_Processor,ls_ls_IData_Processor);
+                ls_IData_Processor = Nil;
+                ls_ls_IData_Alert = Cons(ls_IData_Alert,ls_ls_IData_Alert);
+                ls_IData_Alert = Nil;
+                ls_ls_IData_Collector = Cons(ls_IData_Collector,ls_ls_IData_Collector);
+                ls_IData_Collector = Nil;
+                ls_ls_DeploymentComponent = Cons(ls_DeploymentComponent,ls_ls_DeploymentComponent);
+                ls_DeploymentComponent = Nil;
+                this.deploy_aux();
+        }
+
+        Unit undeploy() {
+                if (ls_ls_DeploymentComponent != Nil) {
+                        this.undeploy_aux();
+                        ls_DeploymentComponent = head(ls_ls_DeploymentComponent);
+                        ls_ls_DeploymentComponent = tail(ls_ls_DeploymentComponent);
+                                ls_IData_Processor = head(ls_ls_IData_Processor);
+                                ls_IData_Alert = head(ls_ls_IData_Alert);
+                                ls_IData_Collector = head(ls_ls_IData_Collector);
+                        ls_ls_IData_Processor = tail(ls_ls_IData_Processor);
+                        ls_ls_IData_Alert = tail(ls_ls_IData_Alert);
+                        ls_ls_IData_Collector = tail(ls_ls_IData_Collector);
+                }
+        }
+
+
+        Unit deploy_aux() {
+                Map<DeploymentComponent,Rat> speedPatchMap = map[];
+                DeploymentComponent edge_0 = cloudProvider.launchInstanceNamed("edge");
+                ls_DeploymentComponent = Cons(edge_0,ls_DeploymentComponent);
+                speedPatchMap = put(speedPatchMap,edge_0,0);
+                DeploymentComponent cloud_0 = cloudProvider.launchInstanceNamed("cloud");
+                ls_DeploymentComponent = Cons(cloud_0,ls_DeploymentComponent);
+                speedPatchMap = put(speedPatchMap,cloud_0,0);
+                [DC: cloud_0] IData_Alert odefault___Data_Alert_0_cloud_0 = new Data_Alert();
+                Rat coreRequired_odefault___Data_Alert_0_cloud_0 = 1;
+                speedPatchMap = put(speedPatchMap, cloud_0, fromJust(lookup(speedPatchMap,cloud_0)) + coreRequired_odefault___Data_Alert_0_cloud_0);
+                ls_IData_Alert = Cons(odefault___Data_Alert_0_cloud_0, ls_IData_Alert);
+                [DC: edge_0] IData_Collector odefault___Data_Collector_0_edge_0 = new Data_Collector(id);
+                Rat coreRequired_odefault___Data_Collector_0_edge_0 = 1;
+                speedPatchMap = put(speedPatchMap, edge_0, fromJust(lookup(speedPatchMap,edge_0)) + coreRequired_odefault___Data_Collector_0_edge_0);
+                ls_IData_Collector = Cons(odefault___Data_Collector_0_edge_0, ls_IData_Collector);
+                this!patchSpeed(speedPatchMap);
+        }
+
+        Unit undeploy_aux() {
+                IData_Alert odefault___Data_Alert_0_cloud_0 = nth(ls_IData_Alert,0);
+                IData_Collector odefault___Data_Collector_0_edge_0 = nth(ls_IData_Collector,0);
+                while ( !isEmpty(ls_DeploymentComponent) ) {
+                        cloudProvider.shutdownInstance(head(ls_DeploymentComponent));
+                        ls_DeploymentComponent = tail(ls_DeploymentComponent);
+                }
+        }
+
+        Unit patchSpeed(Map<DeploymentComponent,Rat> dcs) {
+                foreach(entry in entries(dcs)) {
+                        DeploymentComponent dc = fst(entry);
+                        Rat coreUsed = snd(entry);
+                        InfRat speed_aux = await dc!total(Speed);
+                        Rat total_speed = case speed_aux {
+                                Fin(x) => x;
+                                _ => -1;
+                        };
+                        if(total_speed != -1) {
+                                Rat totalCore = await dc!getNumberOfCores();
+                                Rat speedPerCore = total_speed / totalCore;
+                                dc!decrementResources(total_speed - (speedPerCore * coreUsed), Speed);
+                        }
+                }
+        }
+}

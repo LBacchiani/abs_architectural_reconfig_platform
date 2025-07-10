@@ -1,0 +1,33 @@
+module Logger;
+
+export *;
+
+import * from Prometheus;
+import * from Param;
+
+
+interface ILogger {
+    Unit log(Rat time, Rat start, Rat end, Map<String,Rat> metrics);
+}
+
+class Logger(PrometheusInterface prom) implements ILogger {
+
+    
+    Unit log(Rat time, Rat start, Rat end, Map<String,Rat> metrics) {
+        String toPrint = "";
+        Int i = 0;
+        while(i < n_pipelines()) {
+            String zone = "cloud";
+            Rat z = lookupDefault(metrics,"zoneDataProcessor"+toString(i),0);
+            if (z == 1) zone = "edge";
+            toPrint = toPrint + "Pipeline" + toString(i+1) + "[zone:" + zone + "]:"; 
+            Rat reqs = lookupDefault(metrics,"reqsDataProcessor"+toString(i),0);
+            reqs = when reqs == 0 then 1 else reqs;
+            Rat avg_size_mb = lookupDefault(metrics,"sizeDataProcessor"+toString(i),0) / pow(10,6);
+            Rat avg_lat_ms = 1000*lookupDefault(metrics,"latDataProcessor"+toString(i),0) / time_unit_to_sec();
+            toPrint = toPrint + "(" + toString(float(avg_lat_ms/reqs)) + "," + toString(float(avg_size_mb/reqs)) + ") ";
+            i = i + 1;
+        }
+        println(toPrint);
+    }
+}

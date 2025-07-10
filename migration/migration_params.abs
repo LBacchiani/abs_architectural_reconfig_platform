@@ -1,0 +1,7 @@
+module Reconfig_Param;
+
+export *;
+
+def String global_service_name() = "system";
+def List<String> service_metrics() = list["lat","size","reqs","zone"];
+def List<String> global_metrics() = list[];

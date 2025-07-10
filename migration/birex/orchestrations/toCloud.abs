@@ -1,0 +1,82 @@
+module ToCloudMigration;
+export *;
+import * from ABS.DC;
+import * from Architecture;
+import * from Prometheus;
+
+interface ToCloudMigration{
+        List<IData_Alert> getIData_Alert();
+        List<IData_Collector> getIData_Collector();
+        List<IData_Processor> getIData_Processor();
+        List<DeploymentComponent> getDeploymentComponent();
+        Unit deploy();
+        Unit undeploy();
+}
+
+class ToCloudMigration(CloudProvider cloudProvider,PrometheusInterface prometheus, Int id, IData_Collector data_collector, IData_Alert data_alert) implements ToCloudMigration{
+
+        List<List<IData_Alert>> ls_ls_IData_Alert = Nil;
+        List<IData_Alert> ls_IData_Alert = Nil;
+        List<List<IData_Collector>> ls_ls_IData_Collector = Nil;
+        List<IData_Collector> ls_IData_Collector = Nil;
+        List<List<IData_Processor>> ls_ls_IData_Processor = Nil;
+        List<IData_Processor> ls_IData_Processor = Nil;
+        List<List<DeploymentComponent>> ls_ls_DeploymentComponent = Nil;
+        List<DeploymentComponent> ls_DeploymentComponent = Nil;
+        {
+                cloudProvider.addInstanceDescription(Pair("cloud",
+                        map[Pair(CostPerInterval,100)
+                        ,Pair(PaymentInterval,1)
+                        ,Pair(Cores,4)
+                        ,Pair(Memory,500)
+                        ,Pair(Bandwidth,1000)
+                        ,Pair(Speed,10)
+                        ]));
+
+
+        }
+        List<IData_Alert> getIData_Alert() { return ls_IData_Alert; }
+        List<IData_Collector> getIData_Collector() { return ls_IData_Collector; }
+        List<IData_Processor> getIData_Processor() { return ls_IData_Processor; }
+        List<DeploymentComponent> getDeploymentComponent() { return ls_DeploymentComponent; }
+
+        Unit deploy() {
+                ls_ls_IData_Alert = Cons(ls_IData_Alert,ls_ls_IData_Alert);
+                ls_IData_Alert = Nil;
+                ls_ls_IData_Collector = Cons(ls_IData_Collector,ls_ls_IData_Collector);
+                ls_IData_Collector = Nil;
+                ls_ls_IData_Processor = Cons(ls_IData_Processor,ls_ls_IData_Processor);
+                ls_IData_Processor = Nil;
+                ls_ls_DeploymentComponent = Cons(ls_DeploymentComponent,ls_ls_DeploymentComponent);
+                ls_DeploymentComponent = Nil;
+                this.deploy_aux();
+        }
+
+        Unit undeploy() {
+                if (ls_ls_DeploymentComponent != Nil) {
+                        this.undeploy_aux();
+                        ls_DeploymentComponent = head(ls_ls_DeploymentComponent);
+                        ls_ls_DeploymentComponent = tail(ls_ls_DeploymentComponent);
+                                ls_IData_Alert = head(ls_ls_IData_Alert);
+                                ls_IData_Collector = head(ls_ls_IData_Collector);
+                                ls_IData_Processor = head(ls_ls_IData_Processor);
+                        ls_ls_IData_Alert = tail(ls_ls_IData_Alert);
+                        ls_ls_IData_Collector = tail(ls_ls_IData_Collector);
+                        ls_ls_IData_Processor = tail(ls_ls_IData_Processor);
+                }
+        }
+
+
+        Unit deploy_aux() {
+                DeploymentComponent cloud_0 = cloudProvider.launchInstanceNamed("cloud");
+                ls_DeploymentComponent = Cons(cloud_0,ls_DeploymentComponent);
+                [DC: cloud_0] IData_Processor odefault___Data_Processor_0____7bcf3c8ea95944d49cf202e250058245_0 = new Data_Processor(prometheus, data_collector, id);
+                ls_IData_Processor = Cons(odefault___Data_Processor_0____7bcf3c8ea95944d49cf202e250058245_0, ls_IData_Processor);
+                data_alert.connect(odefault___Data_Processor_0____7bcf3c8ea95944d49cf202e250058245_0);
+        }
+
+        Unit undeploy_aux() {
+                IData_Processor odefault___Data_Processor_0____7bcf3c8ea95944d49cf202e250058245_0 = nth(ls_IData_Processor,0);
+                data_alert.disconnect();
+        }
+}

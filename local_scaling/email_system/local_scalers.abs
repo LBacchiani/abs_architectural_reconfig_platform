@@ -1,0 +1,328 @@
+module LocalScaler;
+
+export *;
+import * from Architecture;
+import * from Param;
+import * from Prometheus;
+import * from MessageParserPlan;
+import * from VirusScannerPlan;
+import * from AttachmentsManagerPlan;
+import * from ImageAnalyserPlan;
+import * from MessageAnalyserPlan;
+
+interface LocalScaler {
+  Unit adapt(Map<String,Rat> metrics);
+}
+
+class ParserScaler(PrometheusInterface prom, MessageParserPlan orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Parser"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),0);
+    Rat mf = nth(serviceMFs(),0);
+    Rat curr = lookupUnsafe(metrics,"tot"+"Parser") / monitoring_window();// await prom!getV("tot","Parser");
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+class HeaderScaler(PrometheusInterface prom) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Header"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    // Rat mcl = nth(serviceMCLs(),0);
+    // Rat mf = nth(serviceMFs(),0);
+    // Rat curr = lookupUnsafe(metrics,"tot"+"Parser") / monitoring_window();// await prom!getV("tot","Parser");
+    // if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+    //   Int target = ceil(float((curr + kbig())/ mcl));
+    //   Int direction = target - currInst;
+    //   if (direction < 0) {
+    //     direction = abs(direction);
+    //     while (direction > 0) {
+    //       orch!undeploy();
+    //       direction = direction - 1;
+    //     }
+    //   } else {
+    //     direction = abs(direction);
+    //     while (direction > 0) {
+    //       orch!deploy();
+    //       direction = direction - 1;
+    //     }
+    //   }
+    //   currInst = target;
+      inst!push(currInst);
+    // }
+  }
+}
+
+class LinkScaler(PrometheusInterface prom) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Link"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    // Rat mcl = nth(serviceMCLs(),0);
+    // Rat mf = nth(serviceMFs(),0);
+    // Rat curr = lookupUnsafe(metrics,"tot"+"Parser") / monitoring_window();// await prom!getV("tot","Parser");
+    // if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+    //   Int target = ceil(float((curr + kbig())/ mcl));
+    //   Int direction = target - currInst;
+    //   if (direction < 0) {
+    //     direction = abs(direction);
+    //     while (direction > 0) {
+    //       orch!undeploy();
+    //       direction = direction - 1;
+    //     }
+    //   } else {
+    //     direction = abs(direction);
+    //     while (direction > 0) {
+    //       orch!deploy();
+    //       direction = direction - 1;
+    //     }
+    //   }
+    //   currInst = target;
+      inst!push(currInst);
+    // }
+  }
+}
+
+class TextScaler(PrometheusInterface prom) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Text"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    // Rat mcl = nth(serviceMCLs(),0);
+    // Rat mf = nth(serviceMFs(),0);
+    // Rat curr = lookupUnsafe(metrics,"tot"+"Parser") / monitoring_window();// await prom!getV("tot","Parser");
+    // if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+    //   Int target = ceil(float((curr + kbig())/ mcl));
+    //   Int direction = target - currInst;
+    //   if (direction < 0) {
+    //     direction = abs(direction);
+    //     while (direction > 0) {
+    //       orch!undeploy();
+    //       direction = direction - 1;
+    //     }
+    //   } else {
+    //     direction = abs(direction);
+    //     while (direction > 0) {
+    //       orch!deploy();
+    //       direction = direction - 1;
+    //     }
+    //   }
+    //   currInst = target;
+      inst!push(currInst);
+    // }
+  }
+}
+
+class VirusScannerScaler(PrometheusInterface prom, VirusScannerPlan orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","VirusScanner"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),4);
+    Rat mf = nth(serviceMFs(),4);
+    Rat curr = lookupUnsafe(metrics,"tot"+"VirusScanner") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+class AttachmentsManagerScaler(PrometheusInterface prom, AttachmentsManagerPlan orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","AttachmentsManager"));
+    inst!push(currInst);
+     prom!register(list[inst]);
+  }
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),5);
+    Rat mf = nth(serviceMFs(),5);
+    Rat curr = lookupUnsafe(metrics,"tot"+"AttachmentsManager") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+class ImageAnalyserScaler(PrometheusInterface prom, ImageAnalyserPlan orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","ImageAnalyser"));
+    inst!push(currInst);
+     prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),6);
+    Rat mf = nth(serviceMFs(),6);
+    Rat curr = lookupUnsafe(metrics,"tot"+"ImageAnalyser") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+
+class MessageAnalyserScaler(PrometheusInterface prom, MessageAnalyserPlan orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","MessageAnalyser"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),7);
+    Rat mf = nth(serviceMFs(),7);
+    Rat curr = lookupUnsafe(metrics,"tot"+"MessageAnalyser") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}

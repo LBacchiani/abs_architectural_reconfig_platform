@@ -35,7 +35,7 @@ class InstantMetric(Pair<String,String> id) implements Metric {
 
 interface PrometheusInterface {
     [Atomic] Unit register(List<Metric> ms);
-    Rat getV(String metric, String key, Rat start, Rat end);
+    Rat getV(String metric, String key);
     Unit flush();
 }
 
@@ -56,7 +56,7 @@ class Prometheus() implements PrometheusInterface {
         }
     }
 
-    Rat getV(String metric, String key, Rat start, Rat end) {
+    Rat getV(String metric, String key) {
         List<Metric> ms = lookupDefault(metrics,Pair(metric,key),list[]);
         Rat toRet = 0;//m.value();
         foreach (m in ms) {

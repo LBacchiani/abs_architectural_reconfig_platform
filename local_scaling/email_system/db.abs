@@ -1,0 +1,53 @@
+module DB;
+
+export *;
+
+import * from MsgRes;
+
+interface DBInterface {
+  Unit insertMessageInformation (String messageId, Int attachmentsNumber);
+  Int insertResult(String res, String id);
+  MessageResultInterface returnMessageResults(String messageId);
+  Bool removeMessage(String messageId);
+}
+
+class DB() implements DBInterface {
+  Map<String,Pair<MessageResultInterface,Rat>> messageInfo = map[];
+
+  Bool removeMessage(String messageId) {
+    Bool removed = False;
+    if(isJust(lookup(messageInfo,messageId))) {
+      messageInfo = removeKey(messageInfo, messageId);
+      removed = True;
+    }
+    return removed;
+  }
+
+  Unit insertMessageInformation (String messageId, Int attachmentsNumber){
+    MessageResultInterface newResults = new MessageResult(3+attachmentsNumber, timeValue(now()));
+		messageInfo = insert(messageInfo,Pair(messageId,Pair(newResults,timeValue(now()))));
+  }
+
+  Int insertResult(String res, String id){
+    Int numberOfActivityWaiting = -1;
+    Maybe<Pair<MessageResultInterface,Rat>> maybe = lookup(messageInfo, id);
+    if(isJust(maybe)){
+      MessageResultInterface actualResults = fst(fromJust(maybe));
+      Rat analysisTime = snd(fromJust(maybe));
+      actualResults.insertRes(res);
+      numberOfActivityWaiting = actualResults.getActivityWaiting();
+    }
+    return numberOfActivityWaiting;
+  }
+
+  MessageResultInterface returnMessageResults(String messageId){
+    MessageResultInterface messageResults = null;
+    Maybe<Pair<MessageResultInterface,Rat>> maybe = lookup(messageInfo, messageId);
+    if(isJust(maybe)){
+      messageResults = fst(fromJust(maybe));
+      messageInfo = removeKey(messageInfo, messageId);
+    }
+    return messageResults;
+  }
+
+}

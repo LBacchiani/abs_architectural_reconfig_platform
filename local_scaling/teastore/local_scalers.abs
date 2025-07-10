@@ -1,0 +1,212 @@
+module LocalScaler;
+
+export *;
+import * from Architecture;
+import * from Param;
+import * from Prometheus;
+import * from AuthDeployment;
+import * from ImageDeployment;
+import * from PersistenceDeployment;
+import * from RecommenderDeployment;
+import * from WebUIDeployment;
+
+interface LocalScaler {
+  Unit adapt(Map<String,Rat> metrics);
+}
+
+class AuthScaler(PrometheusInterface prom, AuthDeployment orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Auth"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),2);
+    Rat mf = nth(serviceMFs(),2);
+    Rat curr = lookupUnsafe(metrics,"tot"+"Auth") / monitoring_window();// await prom!getV("tot","Parser");
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+
+class ImageScaler(PrometheusInterface prom, ImageDeployment orch) implements LocalScaler {
+
+  Int currInst = 2;
+  Int minInst = 2;
+
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Image"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),4);
+    Rat mf = nth(serviceMFs(),4);
+    Rat curr = lookupUnsafe(metrics,"tot"+"Image") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > minInst) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+class PersistenceScaler(PrometheusInterface prom, PersistenceDeployment orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Persistence"));
+    inst!push(currInst);
+     prom!register(list[inst]);
+  }
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),1);
+    Rat mf = nth(serviceMFs(),1);
+    Rat curr = lookupUnsafe(metrics,"tot"+"Persistence") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+class RecommenderScaler(PrometheusInterface prom, RecommenderDeployment orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","Recommender"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),3);
+    Rat mf = nth(serviceMFs(),3);
+    Rat curr = lookupUnsafe(metrics,"tot"+"Recommender") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}
+
+class WebUIScaler(PrometheusInterface prom, WebUIDeployment orch) implements LocalScaler {
+
+  Int currInst = 1;
+  Int minInst = 1;
+
+  Metric inst;
+
+  {
+    inst = new InstantMetric(Pair("inst","WebUI"));
+    inst!push(currInst);
+    prom!register(list[inst]);
+  }
+
+  Unit adapt(Map<String,Rat> metrics) {
+    Rat mcl = nth(serviceMCLs(),0);
+    Rat mf = nth(serviceMFs(),0);
+    Rat curr = lookupUnsafe(metrics,"tot"+"WebUI") / monitoring_window();
+    if(curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) {
+      Int target = ceil(float((curr + kbig())/ mcl));
+      Int direction = target - currInst;
+
+      if (direction < 0) {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!undeploy();
+          direction = direction - 1;
+        }
+      } else {
+        direction = abs(direction);
+        while (direction > 0) {
+          orch!deploy();
+          direction = direction - 1;
+        }
+      }
+      currInst = target;
+      inst!push(currInst);
+    }
+  }
+}

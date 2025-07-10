@@ -1,0 +1,50 @@
+module Param;
+
+export *;
+
+def Int n_pipelines() = 3;
+def Int runs() = 20;
+def Int cycles() = 16;
+
+
+def List<String> services() = list["DataProcessor0","DataProcessor1","DataProcessor2"];
+
+
+////WORKLOADS////
+def List<List<Rat>> sizes() = list[list[80, 60, 20, 150, 80, 60, 40, 120], list[60, 40, 120, 80, 60, 20, 150, 80], list[20, 150, 80, 60, 40, 120, 80, 60]];
+def Int size_length() = 8;
+////WORKLOADS////
+
+def List<Int> base_config() = list[];
+
+/////TIMING ASPECTS/////
+def Rat time_unit_to_sec() = 30; //be this value v => v time unit = 1 sec
+def Rat monitoring_window() = 10; //monitoring window 10s
+def Rat req_inverval() = 3; //data alert request interval 3s
+
+def Rat bandwidth() = 1000; //same bandiwdth of the DC annotation byte/s
+def Rat byte_header_size() = 3500; //byte
+def Rat compute_data_size_to_send(Rat curr_size) = pow(curr_size,2) * byte_header_size(); //byte
+/////TIMING ASPECTS/////
+
+///THRESHOLDS///
+def Rat lat_threshold_to_edge() = 18/10 * time_unit_to_sec(); //threshold in sec
+def Rat lat_threshold_to_cloud() = 1 * time_unit_to_sec(); //threshold in sec
+def Rat size_threshold() = 68 * 68 * byte_header_size(); //threshold in byte
+///THRESHOLDS///
+
+
+////TRANSMISSION SPEED///
+def Rat slowdown_factor() = 11/10 + random(24)/10; //in second
+//MB/s
+def Map<Rat,Float> bandiwdth_usages() = map[Pair(1, 2.0), Pair(20,6.229654),Pair(40,18.583838),Pair(60,32.003485),Pair(80,41.861247),Pair(100,50.265722),Pair(120,57.043015),Pair(150,51.973993)];
+//byte/TU
+def Rat predict_bandwidth(Rat size) = pow(10,6) * rat(lookupUnsafe(bandiwdth_usages(),size))/time_unit_to_sec();
+////TRANSMISSION SPEED///
+
+def Rat error_prob(Rat x) = (pow(x,5) * pow(10,-8) * rat(5.634)) - (pow(x,4) * pow(10,-5) * rat(2.319)) + (pow(x,3) * rat(0.003505)) 
+                            - (pow(x,2) * rat(0.2361)) + (x * rat(6.981)) - rat(64.99); //TODO: FIX ME
+
+
+
+

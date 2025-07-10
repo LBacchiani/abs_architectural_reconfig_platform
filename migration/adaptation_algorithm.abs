@@ -1,0 +1,125 @@
+module Adaptation;
+
+export *;
+
+import * from Architecture;
+import * from ToCloudMigration;
+import * from ToEdgeMigration;
+import * from Prometheus;
+import * from Param;
+
+
+interface AdaptationAlgorithm {
+    Unit adapt(Map<String,Rat> metrics, Int time);
+}
+
+class Algorithm(PrometheusInterface prometheus, List<ToEdgeMigration> edge_migrations,  List<ToCloudMigration> cloud_migrations, List<String> zs, Map<Int, IData_Collector> collectors) implements AdaptationAlgorithm {
+    List<String> zones = zs;
+    List<Metric> zoneMetrics = list[];
+
+    {
+        Int i = 0;
+        while (i < n_pipelines()) {
+            Metric tmp = new InstantMetric(Pair("zone","DataProcessor" + toString(i)));
+            tmp!push(when nth(zones,i) == "cloud" then 0 else 1);
+            zoneMetrics = appendright(zoneMetrics, tmp);
+            i = i + 1;
+        }
+        prometheus!register(zoneMetrics);
+    }
+
+    Unit adapt(Map<String,Rat> metrics, Int time) {
+        if(time % 2 == 0) this!update_sizes();
+        ///latency based policy
+        Int move = await this!service_to_move_lookup(metrics,"lat"); 
+        Rat reqs = lookupUnsafe(metrics, "reqs" + nth(services(),move));
+        Rat max_lat = when reqs == 0 then -1 else lookupUnsafe(metrics, "latDataProcessor" + toString(move))/reqs;
+        Rat size = when reqs == 0 then -1 else lookupUnsafe(metrics, "sizeDataProcessor" + toString(move))/reqs;
+        if(max_lat > lat_threshold_to_edge() || max_lat == -1) {
+            Bool edge_free = await this!isEdgeFree();
+            if(edge_free) this!move_to_edge(move);
+            else {
+                Int toCloud = await this!edge_index_lookup();
+                if(toCloud != move) {
+                    this!move_to_cloud(toCloud);
+                    this!move_to_edge(move);
+                }
+            }
+        }
+        else if(nth(zones, move) == "edge" && max_lat < lat_threshold_to_cloud() && size < size_threshold()) this!move_to_cloud(move);
+        
+        //SIZE BASED POLICY/////
+        // Int move = await this!service_to_move_lookup(metrics,"size"); 
+        // Rat max_size = nth(average_sizes, move);
+        // if(max_size > size_threshold() || max_size == -1) {
+        //     Bool edge_free = await this!isEdgeFree();
+        //     if(edge_free) this!move_to_edge(move);
+        //     else {
+        //         Int toCloud = await this!edge_index_lookup();
+        //         if(toCloud != move) {
+        //             this!move_to_cloud(toCloud);
+        //             this!move_to_edge(move);
+        //         }
+        //     }
+        // }
+        // else if(nth(zones, move) == "edge" && max_size < size_threshold()) this!move_to_cloud(move);
+    }
+
+    Unit update_sizes() {foreach(v,i in values(collectors)) v!setSize();}
+
+    Int service_to_move_lookup(Map<String,Rat> metrics, String metric) {
+        Rat max_value = -2;
+        Int i = 0;
+        Int toMove = -1;
+        while(i < n_pipelines()) {
+            Rat reqs = lookupUnsafe(metrics, "reqs" + nth(services(),i));
+            Rat curr_val = when reqs == 0 then -1 else lookupUnsafe(metrics, metric + nth(services(),i)) / reqs;
+            if(curr_val == -1) {
+                toMove = i;
+                i = n_pipelines();
+            } else {
+                if(max_value < curr_val) {
+                    max_value = curr_val;
+                    toMove = i; 
+                }
+            }
+            i = i + 1;
+        }
+        return toMove;
+    }
+
+    Bool isEdgeFree() {return length(filter((String z) => z == "edge")(zones)) == 0;}
+
+    Unit move_to_edge(Int i) {
+        nth(edge_migrations, i)!deploy();
+        nth(cloud_migrations,i)!undeploy();
+        this!update_zones(i, "edge");
+    }
+
+    Unit move_to_cloud(Int i) {
+        nth(cloud_migrations, i)!deploy();
+        nth(edge_migrations,i)!undeploy();
+        this!update_zones(i, "cloud");
+    }
+
+    Int edge_index_lookup() {
+        Int target = -1;
+        foreach(z,i in zones) {
+            if(z == "edge") target = i;
+        }
+        return target;
+    }
+
+    Unit update_zones(Int update, String z) {
+        List<String> tmp = list[];
+        Int i = 0;
+         while(i < n_pipelines()) {
+            if(i != update) tmp = appendright(tmp, nth(zones, i));
+            else tmp = appendright(tmp, z);
+            i = i + 1;
+         }
+         zones = tmp;
+         nth(zoneMetrics,update)!push(when z == "cloud" then 0 else 1);
+    }
+
+}
