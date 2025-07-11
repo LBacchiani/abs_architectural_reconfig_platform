@@ -50,7 +50,8 @@ class Algorithm(PrometheusInterface prometheus, List<ToEdgeMigration> edge_migra
         
         //SIZE BASED POLICY/////
         // Int move = await this!service_to_move_lookup(metrics,"size"); 
-        // Rat max_size = nth(average_sizes, move);
+        // Rat reqs = lookupUnsafe(metrics, "reqs" + nth(services(),move));
+        // Rat max_size = when reqs == 0 then -1 else lookupUnsafe(metrics, "sizeDataProcessor" + toString(move))/reqs;
         // if(max_size > size_threshold() || max_size == -1) {
         //     Bool edge_free = await this!isEdgeFree();
         //     if(edge_free) this!move_to_edge(move);
