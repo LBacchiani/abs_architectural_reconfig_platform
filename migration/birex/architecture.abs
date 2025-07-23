@@ -75,7 +75,7 @@ class Data_Collector(Int id) implements IData_Collector {
         Rat s_i = compute_data_size_to_send(size);
         Rat b_i = predict_bandwidth(size);
         Rat avg_edge_lat_i = s_i / b_i;
-        [DataSize: avg_edge_lat_i * bandwidth()] return s_i;
+        [DataSize: avg_edge_lat_i * bandwidth() * time_unit_to_sec()] return s_i;
     }
 }
 
