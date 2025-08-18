@@ -37,7 +37,8 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
     Unit adapt(Map<String,Rat> metrics, Int time) {
         Rat target = lookupUnsafe(metrics,"tot" + global_service_name())/monitoring_window();
         if (proactiveness()) {
-            Rat predicted = foldl((Rat e, Rat acc) => e + acc)(lookupUnsafe(predicted_workload(),time),0);
+            Int index = time % length(predicted_workload());
+            Rat predicted = foldl((Rat e, Rat acc) => e + acc)(nth(predicted_workload(), index),0);
             if (mixing()) {
                 List<Int> actual_conf = this.computeConfiguration(target);  
                 target = await actuation!mix(target, predicted/monitoring_window(), last_pred_config, actual_conf);

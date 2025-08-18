@@ -1,0 +1,22 @@
+0 0.0 next: 12.8 measured: 0.0 tot: 0.0 comp: 0.0 rej: 0.0 supp: 0.0 inst: 8.0
+10 460.1 next: 45.5 measured: 593.1 tot: 5931.0 comp: 852.0 rej: 4940.0 supp: 60.0 inst: 8.0
+20 513.7 next: 206.2 measured: 741.5 tot: 7415.0 comp: 783.0 rej: 6632.0 supp: 60.0 inst: 8.0
+30 454.6 next: 569.6 measured: 729.2 tot: 7292.0 comp: 2212.0 rej: 5557.0 supp: 220.0 inst: 17.0
+40 88.9 next: 580.0 measured: 594.1 tot: 5941.0 comp: 5455.0 rej: 686.0 supp: 616.0 inst: 39.0
+50 0.59 next: 575.0 measured: 540.7 tot: 5407.0 comp: 5411.0 rej: 0.0 supp: 616.0 inst: 39.0
+60 0.1 next: 720.5 measured: 14.9 tot: 149.0 comp: 149.0 rej: 0.0 supp: 616.0 inst: 39.0
+70 0.1 next: 710.5 measured: 44.3 tot: 443.0 comp: 443.0 rej: 0.0 supp: 770.0 inst: 46.0
+80 0.011064348018305782 next: 566.9 measured: 237.1 tot: 2371.0 comp: 2371.0 rej: 0.0 supp: 770.0 inst: 46.0
+90 3.0198780852248723 next: 505.2 measured: 593.7 tot: 5937.0 comp: 5882.0 rej: 0.0 supp: 616.0 inst: 39.0
+100 0.9878225967370853 next: 429.8 measured: 513.6 tot: 5136.0 comp: 5170.0 rej: 0.0 supp: 550.0 inst: 36.0
+110 2.895541117090943 next: 361.5 measured: 431.9 tot: 4319.0 comp: 4319.0 rej: 0.0 supp: 462.0 inst: 30.0
+120 0.005545414704830505 next: 301.4 measured: 348.1 tot: 3481.0 comp: 3481.0 rej: 0.0 supp: 420.0 inst: 27.0
+130 0.004403791115412562 next: 301.3 measured: 298.6 tot: 2986.0 comp: 2986.0 rej: 0.0 supp: 420.0 inst: 27.0
+140 0.004376242826827925 next: 307.0 measured: 301.3 tot: 3013.0 comp: 3013.0 rej: 0.0 supp: 420.0 inst: 27.0
+150 0.006558793822133773 next: 245.0 measured: 299.7 tot: 2997.0 comp: 2997.0 rej: 0.0 supp: 420.0 inst: 27.0
+160 0.012303930474586477 next: 197.3 measured: 241.3 tot: 2413.0 comp: 2413.0 rej: 0.0 supp: 300.0 inst: 20.0
+170 0.002302873986735446 next: 87.5 measured: 188.8 tot: 1888.0 comp: 1888.0 rej: 0.0 supp: 220.0 inst: 17.0
+180 5.555536236373201 next: 157.7 measured: 71.4 tot: 714.0 comp: 714.0 rej: 0.0 supp: 120.0 inst: 11.0
+190 9.976619906479627 next: 440.4 measured: 181.1 tot: 1811.0 comp: 1497.0 rej: 156.0 supp: 220.0 inst: 17.0
+200 39.2 next: 12.8 measured: 411.1 tot: 4111.0 comp: 4120.0 rej: 158.0 supp: 462.0 inst: 30.0
+

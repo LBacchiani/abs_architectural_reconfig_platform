@@ -55,6 +55,8 @@ def List<Int> workload() = list[
     166, 150, 133, 116, 100, 83, 66, 50, 33, 16
 ];
 
+def Map<Int,List<Int>> predicted_workload() = map[];
+
 
 
 def Int memory() = 3; 
