@@ -1,0 +1,21 @@
+0 0.0 measured: 0.0 TOT: 0 comp: 0 rej: 0 supp: 60 INST: 8
+10 0.2436647173489279 measured: 15.2 TOT: 153 comp: 152 rej: 0 supp: 60 INST: 8
+20 98.4959439929014 measured: 41.6 TOT: 417 comp: 319 rej: 36 supp: 60 INST: 8
+30 109.9400187537746 measured: 198.5 TOT: 1986 comp: 648 rej: 1289 supp: 60 INST: 8
+40 892.2051270129266 measured: 591.2 TOT: 5913 comp: 1429 rej: 4368 supp: 220 INST: 17 Scale2-upx1
+50 222.4927154943041 measured: 590.7 TOT: 5907 comp: 5539 rej: 587 supp: 616 INST: 39 Scale2-downx1 Scale3-upx1 Scale4-upx1
+60 23.605966923398583 measured: 592.9 TOT: 5930 comp: 5563 rej: 218 supp: 616 INST: 39
+70 346.7630147735169 measured: 741.5 TOT: 7416 comp: 3191 rej: 4201 supp: 616 INST: 39
+80 47.96711998507992 measured: 729.2 TOT: 7293 comp: 7251 rej: 180 supp: 770 INST: 46 Scale3-downx1 Scale4-upx1
+90 0.07997817285873622 measured: 597.8 TOT: 5978 comp: 5978 rej: 0 supp: 770 INST: 46
+100 0.0057889376016977715 measured: 517.7 TOT: 5178 comp: 5178 rej: 0 supp: 770 INST: 46
+110 0.044352565543534 measured: 439.5 TOT: 4395 comp: 4395 rej: 0 supp: 550 INST: 36 Scale2-upx1 Scale4-downx1
+120 0.0943589322024324 measured: 354.8 TOT: 3548 comp: 3548 rej: 0 supp: 462 INST: 30 Scale1-upx1 Scale2-downx1
+130 0.043u5934659546 measured: 301.0 TOT: 3010 comp: 3010 rej: 0 supp: 420 INST: 27 Scale1-downx1
+140 0.03253464355235432 measured: 300.6 TOT: 3006 comp: 3006 rej: 0 supp: 420 INST: 27
+150 0.009012930129543 measured: 302.6 TOT: 3026 comp: 3027 rej: 0 supp: 420 INST: 27
+160 0.022132135621432 measured: 243.5 TOT: 2436 comp: 2435 rej: 0 supp: 420 INST: 27
+170 0.04856945609544 measured: 195.3 TOT: 1953 comp: 1953 rej: 0 supp: 300 INST: 20 Scale3-upx1 Scale4-downx1
+180 0.09838571460783789 measured: 79.7 TOT: 797 comp: 797 rej: 0 supp: 220 INST: 17 Scale2-upx1 Scale3-downx1
+190 116.59443363509587 measured: 150.2 TOT: 1503 comp: 1014 rej: 335 supp: 120 INST: 11 Scale1-upx1 Scale2-downx1
+200 819.8815014251712 measured: 445.5 TOT: 4455 comp: 1769 rej: 2622 supp: 220 INST: 17 Scale1-downx1 Scale2-upx1

@@ -16,10 +16,11 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
     Metric mclMetric;
     Metric instMetric;
     ActuationModuleInterface actuation; 
-    List<Int> last_pred_config  = base_config();
+    List<Int> last_pred_config = list[0,0,0,0];
+    List<Int> curr_config = base_config();
 
     {
-        actuation = new ActuationModule();
+        actuation = new local ActuationModule();
         mclMetric = new local InstantMetric(Pair("supp",global_service_name()));
         instMetric = new local InstantMetric(Pair("inst", global_service_name()));
         prom!register(list[mclMetric,instMetric]);
@@ -35,20 +36,25 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
     }
 
     Unit adapt(Map<String,Rat> metrics, Int time) {
-        Rat target = lookupUnsafe(metrics,"tot" + global_service_name())/monitoring_window();
+        Rat measured = lookupUnsafe(metrics,"tot" + global_service_name())/monitoring_window();
+        Rat target = measured;
         if (proactiveness()) {
             Int index = time % length(predicted_workload());
             Rat predicted = foldl((Rat e, Rat acc) => e + acc)(nth(predicted_workload(), index),0);
+            predicted = predicted / monitoring_window();
+            target = predicted;
             if (mixing()) {
-                List<Int> actual_conf = this.computeConfiguration(target);  
-                target = await actuation!mix(target, predicted/monitoring_window(), last_pred_config, actual_conf);
-                last_pred_config = this.computeConfiguration(predicted/monitoring_window());
-            } else {
-                target = predicted/monitoring_window();
+                List<Int> measured_conf = this.computeConfiguration(measured);  
+                Rat mixed = actuation.mix(measured, predicted, last_pred_config, measured_conf);
+                last_pred_config = this.computeConfiguration(predicted);
+                target = mixed;
             }
         }
-        List<Int> config = this.computeConfiguration(target);  
         List<Int> configDeltas = this.computeConfiguration(target);
+        Int instances = this.instances(curr_config);
+        Rat mcl = this.mcl(curr_config);
+        instMetric!push(instances);
+        mclMetric!push(mcl);
         this.scale(configDeltas);
     }
 
@@ -88,9 +94,7 @@ class GS_Scaler(List<WrapperScaleInterface> orchestrations, PrometheusInterface 
             }
             config = candidateConfig;
         }
-        Int instances = this.instances(config);
-        instMetric!push(instances);
-        mclMetric!push(mcl);
+        curr_config = config;
         return configDeltas;
     }
 

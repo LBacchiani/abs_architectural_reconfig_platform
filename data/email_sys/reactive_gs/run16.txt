@@ -1,0 +1,21 @@
+0 0.0 measured: 0.0 TOT: 0 comp: 0 rej: 0 supp: 60 INST: 8
+10 0.38699690402476783 measured: 15.2 TOT: 153 comp: 152 rej: 0 supp: 60 INST: 8
+20 99.32631063204313 measured: 41.6 TOT: 417 comp: 314 rej: 43 supp: 60 INST: 8
+30 203.995723174796 measured: 198.6 TOT: 1986 comp: 615 rej: 1324 supp: 60 INST: 8
+40 896.3331743366124 measured: 591.2 TOT: 5913 comp: 1447 rej: 4363 supp: 220 INST: 17 Scale2-upx1
+50 210.3414074335359 measured: 590.7 TOT: 5908 comp: 5550 rej: 561 supp: 616 INST: 39 Scale2-downx1 Scale3-upx1 Scale4-upx1
+60 12.011781066723062 measured: 592.9 TOT: 5930 comp: 5626 rej: 162 supp: 616 INST: 39
+70 345.79246646666405 measured: 741.5 TOT: 7416 comp: 3228 rej: 4161 supp: 616 INST: 39
+80 55.506021946218034 measured: 729.2 TOT: 7293 comp: 7212 rej: 225 supp: 770 INST: 46 Scale3-downx1 Scale4-upx1
+90 0.18560173059669963 measured: 597.8 TOT: 5978 comp: 5980 rej: 0 supp: 770 INST: 46
+100 0.005710474380516585 measured: 517.7 TOT: 5177 comp: 5177 rej: 0 supp: 770 INST: 46
+110 0.03149285417525065 measured: 439.5 TOT: 4395 comp: 4395 rej: 0 supp: 550 INST: 36 Scale2-upx1 Scale4-downx1
+120 0.10180636294719253 measured: 354.8 TOT: 3548 comp: 3548 rej: 0 supp: 462 INST: 30 Scale1-upx1 Scale2-downx1
+130 0.049661074242188644 measured: 301.0 TOT: 3010 comp: 3010 rej: 0 supp: 420 INST: 27 Scale1-downx1
+140 0.026754678328680472 measured: 300.6 TOT: 3006 comp: 3007 rej: 0 supp: 420 INST: 27
+150 0.02877687555418783 measured: 302.6 TOT: 3026 comp: 3026 rej: 0 supp: 420 INST: 27
+160 0.028614822007554587 measured: 243.5 TOT: 2435 comp: 2435 rej: 0 supp: 420 INST: 27
+170 0.06972176338232532 measured: 195.3 TOT: 1954 comp: 1953 rej: 0 supp: 300 INST: 20 Scale3-upx1 Scale4-downx1
+180 0.07437371383135295 measured: 79.7 TOT: 798 comp: 797 rej: 0 supp: 220 INST: 17 Scale2-upx1 Scale3-downx1
+190 241.31961726646588 measured: 150.2 TOT: 1503 comp: 985 rej: 372 supp: 120 INST: 11 Scale1-upx1 Scale2-downx1
+200 854.8453569396382 measured: 445.5 TOT: 4455 comp: 1705 rej: 2686 supp: 220 INST: 17 Scale1-downx1 Scale2-upx1

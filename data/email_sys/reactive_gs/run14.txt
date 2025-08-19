@@ -1,0 +1,21 @@
+0 0.0 measured: 0.0 TOT: 0 comp: 0 rej: 0 supp: 60 INST: 8
+10 0.0 measured: 15.2 TOT: 153 comp: 152 rej: 0 supp: 60 INST: 8
+20 83.35884081196582 measured: 41.6 TOT: 417 comp: 320 rej: 41 supp: 60 INST: 8
+30 282.0885677912473 measured: 198.5 TOT: 1986 comp: 615 rej: 1325 supp: 60 INST: 8
+40 927.3681574612251 measured: 591.2 TOT: 5913 comp: 1409 rej: 4401 supp: 220 INST: 17 Scale2-upx1
+50 211.31601883740126 measured: 590.7 TOT: 5908 comp: 5473 rej: 633 supp: 616 INST: 39 Scale2-downx1 Scale3-upx1 Scale4-upx1
+60 29.893326967753428 measured: 592.9 TOT: 5929 comp: 5425 rej: 339 supp: 616 INST: 39
+70 348.14467685406686 measured: 741.5 TOT: 7416 comp: 3231 rej: 4190 supp: 616 INST: 39
+80 66.27113290789796 measured: 729.2 TOT: 7293 comp: 7144 rej: 296 supp: 770 INST: 46 Scale3-downx1 Scale4-upx1
+90 0.07688329665518397 measured: 597.8 TOT: 5978 comp: 5978 rej: 0 supp: 770 INST: 46
+100 0.007134944844726011 measured: 517.7 TOT: 5178 comp: 5177 rej: 0 supp: 770 INST: 46
+110 0.032070841078870004 measured: 439.5 TOT: 4395 comp: 4395 rej: 0 supp: 550 INST: 36 Scale2-upx1 Scale4-downx1
+120 0.07449231242260117 measured: 354.8 TOT: 3548 comp: 3548 rej: 0 supp: 462 INST: 30 Scale1-upx1 Scale2-downx1
+130 0.0329699930674325 measured: 301.0 TOT: 3010 comp: 3010 rej: 0 supp: 420 INST: 27 Scale1-downx1
+140 0.03118082856493872 measured: 300.6 TOT: 3006 comp: 3006 rej: 0 supp: 420 INST: 27
+150 0.03369028214750591 measured: 302.6 TOT: 3026 comp: 3026 rej: 0 supp: 420 INST: 27
+160 0.01664881716300649 measured: 243.5 TOT: 2435 comp: 2435 rej: 0 supp: 420 INST: 27
+170 0.03583727781327497 measured: 195.3 TOT: 1954 comp: 1953 rej: 0 supp: 300 INST: 20 Scale3-upx1 Scale4-downx1
+180 0.07607603940567885 measured: 79.7 TOT: 797 comp: 797 rej: 0 supp: 220 INST: 17 Scale2-upx1 Scale3-downx1
+190 212.12657759103013 measured: 150.2 TOT: 1502 comp: 957 rej: 368 supp: 120 INST: 11 Scale1-upx1 Scale2-downx1
+200 976.2157709853059 measured: 445.5 TOT: 4455 comp: 1472 rej: 2924 supp: 220 INST: 17 Scale1-downx1 Scale2-upx1

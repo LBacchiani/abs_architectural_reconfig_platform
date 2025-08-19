@@ -10,7 +10,7 @@ def Rat cycles() = length(workload()) / monitoring_window();
 
 def Int memory() = 3; 
 def Bool proactiveness() = True;
-def Bool mixing() = proactiveness() && False;
+def Bool mixing() = proactiveness() && True;
 def List<Rat> scores() = list[60/330, 90/330, 90/330, 90/330];
 
 def Int buffer_size() = 100;

@@ -1,0 +1,21 @@
+0 0.0 measured: 0.0 TOT: 0 comp: 0 rej: 0 supp: 60 INST: 8
+10 0.0 measured: 15.2 TOT: 153 comp: 152 rej: 0 supp: 60 INST: 8
+20 100.97174097174097 measured: 41.6 TOT: 417 comp: 333 rej: 29 supp: 60 INST: 8
+30 298.29452751202354 measured: 198.5 TOT: 1986 comp: 623 rej: 1307 supp: 60 INST: 8
+40 908.769734579123 measured: 591.2 TOT: 5913 comp: 1472 rej: 4325 supp: 220 INST: 17 Scale2-upx1
+50 222.22437213750965 measured: 590.7 TOT: 5908 comp: 5544 rej: 585 supp: 616 INST: 39 Scale2-downx1 Scale3-upx1 Scale4-upx1
+60 18.9472744763432 measured: 592.9 TOT: 5930 comp: 5658 rej: 117 supp: 616 INST: 39
+70 339.29059704659664 measured: 741.5 TOT: 7416 comp: 3321 rej: 4093 supp: 616 INST: 39
+80 58.53506955401188 measured: 729.2 TOT: 7293 comp: 7216 rej: 212 supp: 770 INST: 46 Scale3-downx1 Scale4-upx1
+90 0.10177428617381531 measured: 597.8 TOT: 5979 comp: 5978 rej: 0 supp: 770 INST: 46
+100 0.00941035784383595 measured: 517.7 TOT: 5177 comp: 5177 rej: 0 supp: 770 INST: 46
+110 0.04287572930526126 measured: 439.5 TOT: 4395 comp: 4395 rej: 0 supp: 550 INST: 36 Scale2-upx1 Scale4-downx1
+120 0.057683468026396525 measured: 354.8 TOT: 3548 comp: 3548 rej: 0 supp: 462 INST: 30 Scale1-upx1 Scale2-downx1
+130 0.015921142253748747 measured: 301.0 TOT: 3010 comp: 3010 rej: 0 supp: 420 INST: 27 Scale1-downx1
+140 0.016847117641043696 measured: 300.6 TOT: 3006 comp: 3006 rej: 0 supp: 420 INST: 27
+150 0.021331952641021088 measured: 302.6 TOT: 3026 comp: 3026 rej: 0 supp: 420 INST: 27
+160 0.01676853178054286 measured: 243.5 TOT: 2436 comp: 2436 rej: 0 supp: 420 INST: 27
+170 0.023079956679289762 measured: 195.3 TOT: 1953 comp: 1953 rej: 0 supp: 300 INST: 20 Scale3-upx1 Scale4-downx1
+180 0.0744828726410662 measured: 79.7 TOT: 797 comp: 797 rej: 0 supp: 220 INST: 17 Scale2-upx1 Scale3-downx1
+190 204.58675316138442 measured: 150.2 TOT: 1503 comp: 977 rej: 358 supp: 120 INST: 11 Scale1-upx1 Scale2-downx1
+200 824.9424580957609 measured: 445.5 TOT: 4455 comp: 1743 rej: 2664 supp: 220 INST: 17 Scale1-downx1 Scale2-upx1
