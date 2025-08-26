@@ -14,7 +14,7 @@ import * from ImageDeployment;
 import * from PersistenceDeployment;
 import * from RecommenderDeployment;
 import * from WebUIDeployment;
-import * from LocalScaler;
+import * from Wrapper;
 
 
 interface ISimulation {
@@ -50,23 +50,23 @@ class Simulation() implements ISimulation {
           WebUILoadBalancerInterface webUILB = head(webUILBList);
 
           WebUIDeployment webUID = new WebUIDeployment(cp, prometheus, webUILB, persistenceLB, authLB, imageLB, recommenderLB);
-          LocalScaler webUILS = new WebUIScaler(prometheus, webUID);
+          WrapperScaleInterface webUI = new WrapperScale(webUID, null, null, null);
 
           AuthDeployment authD = new AuthDeployment(cp, prometheus, authLB, persistenceLB);
-          LocalScaler authLS = new AuthScaler(prometheus, authD);
+          WrapperScaleInterface auth = new WrapperScale(null, null, authD, null);
 
           PersistenceDeployment persD = new PersistenceDeployment(cp, prometheus, persistenceLB);
-          LocalScaler persLS = new PersistenceScaler(prometheus, persD);
+          WrapperScaleInterface pers = new WrapperScale(null, persD, null, null);
 
-          RecommenderDeployment recommD = new RecommenderDeployment(cp, prometheus, recommenderLB);
-          LocalScaler recommLS = new RecommenderScaler(prometheus, recommD);
+          // RecommenderDeployment recommD = new RecommenderDeployment(cp, prometheus, recommenderLB);
+          // LocalScaler recommLS = new local RecommenderScaler(prometheus, recommD);
 
           ImageDeployment imageD = new ImageDeployment(cp, prometheus, imageLB);
-          LocalScaler imageLS = new ImageScaler(prometheus, imageD);
+          WrapperScaleInterface image = new WrapperScale(null, null, null, imageD);
 
-          List<LocalScaler> scalers = list[webUILS, authLS, persLS, recommLS, imageLS];
-          
-          AdaptationAlgorithm alg = new Algorithm(scalers);
+          Map<String,WrapperScaleInterface> wrappers = map[Pair("WebUI", webUI),Pair("Persistence", pers), Pair("Auth", auth), Pair("Image", image), Pair("Recommender", null)];
+
+          AdaptationAlgorithm alg = new local Algorithm(wrappers, prometheus);
 
           new Monitor(prometheus, alg);
           new WorkloadGenerator(webUILB);

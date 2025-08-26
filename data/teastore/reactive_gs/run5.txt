@@ -1,8 +1,9 @@
+lorenzobacchiani@MacBookPro abs_architectural_reconfig_platform % gen/erl/run
 0 0.0 measured: 0.0 tot: 0.0 comp: 0.0 rej: 0.0 supp: 0.0 inst: 6.0
-20 120.3877931851787 measured: 174.7 tot: 3494.0 comp: 2862.0 rej: 0.0 supp: 150.0 inst: 6.0
-40 2500.994452011389 measured: 469.05 tot: 9381.0 comp: 6997.0 rej: 0.0 supp: 380.0 inst: 12.0
-60 848.7991684743312 measured: 499.95 tot: 9999.0 comp: 11064.0 rej: 2037.0 supp: 570.0 inst: 17.0
-80 0.0084 measured: 499.95 tot: 9999.0 comp: 10000.0 rej: 0.0 supp: 570.0 inst: 17.0
+20 0.03560746332431278 measured: 47.65 tot: 953.0 comp: 952.0 rej: 0.0 supp: 150.0 inst: 6.0
+40 2996.460763034974 measured: 279.4 tot: 5588.0 comp: 2780.0 rej: 0.0 supp: 150.0 inst: 6.0
+60 4535.3681445823795 measured: 499.95 tot: 9999.0 comp: 5741.0 rej: 4713.0 supp: 380.0 inst: 12.0
+80 384.4321646341464 measured: 474.95 tot: 9499.0 comp: 10496.0 rej: 1321.0 supp: 570.0 inst: 17.0
 100 0.008600860086008601 measured: 499.95 tot: 9999.0 comp: 9999.0 rej: 0.0 supp: 570.0 inst: 17.0
 120 0.0076 measured: 499.95 tot: 9999.0 comp: 10000.0 rej: 0.0 supp: 570.0 inst: 17.0
 140 0.005 measured: 499.95 tot: 9999.0 comp: 10000.0 rej: 0.0 supp: 570.0 inst: 17.0

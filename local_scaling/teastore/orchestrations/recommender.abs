@@ -159,7 +159,7 @@ class RecommenderDeployment(CloudProvider cloudProvider, PrometheusInterface pro
 		speedPatchMap = put(speedPatchMap, c4_xlarge_0, fromJust(lookup(speedPatchMap,c4_xlarge_0)) + coreRequired_odefault___Recommender_0_c4_xlarge_0);
 		ls_RecommenderInterface = Cons(odefault___Recommender_0_c4_xlarge_0, ls_RecommenderInterface);
 		this!patchSpeed(speedPatchMap);
-		await duration(waiting_time,waiting_time);
+		//await duration(waiting_time,waiting_time);
 		balancer.connectInstance(odefault___Recommender_0_c4_xlarge_0);
 	}
 

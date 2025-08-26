@@ -2,61 +2,103 @@ module Adaptation;
 
 export *;
 
-import * from LocalScaler;
+import * from Wrapper;
+import * from Param;
+import * from Prometheus;
 
 interface AdaptationAlgorithm {
     Unit adapt(Map<String,Rat> metrics, Int time);
 }
 
-class Algorithm(List<LocalScaler> scalers) implements AdaptationAlgorithm {
-    // Metric mclMetric;
-    // Metric instMetric;
-    // {
-    //     mclMetric = new local InstantMetric(Pair("supp",global_service_name()));
-    //     instMetric = new local InstantMetric(Pair("inst",global_service_name()));
-    //     // prom!register(list[mclMetric,instMetric]);
-    //     // Rat mcl = this.mcl(base_config());
-    //     // mclMetric!push(mcl);
-    //     // Rat inst = this.instances(base_config());
-    //     // instMetric!push(inst);
-    // }
-
-    Unit adapt(Map<String,Rat> metrics, Int time) {
-        foreach (scaler in scalers) scaler!adapt(metrics);
-        // Int i = 0;
-        // List<Int> config = list[];
-
-        // while (i < length(services())) {
-        //     Rat inst = lookupUnsafe(metrics,"inst" + nth(services(),i));//await prom!getV("inst",nth(services(),i));
-        //     config = appendright(config,truncate(inst));
-        //     i = i + 1;
-        // }
-        // Rat mcl = this.mcl(config);
-        // mclMetric!push(mcl);
-        // Rat inst = this.instances(config);
-        // instMetric!push(inst);
+class Algorithm(Map<String,WrapperScaleInterface> wrappers, PrometheusInterface prom) implements AdaptationAlgorithm {
+    Metric mclMetric;
+    Metric instMetric;
+    List<Int> config = base_config();
+    {
+        mclMetric = new local InstantMetric(Pair("supp",global_service_name()));
+        instMetric = new local InstantMetric(Pair("inst",global_service_name()));
+        prom!register(list[mclMetric,instMetric]);
+        Rat mcl = this.mcl(base_config());
+        mclMetric!push(mcl);
+        Rat inst = this.instances(base_config());
+        instMetric!push(inst);
     }
 
 
-//    [Atomic] Rat mcl(List<Int> microserviceInstances) {
-//         Rat mcl = 0;
-//         Int i = 0;
-//         while(i < length(microserviceInstances)) {
-//             Rat n_inst = nth(microserviceInstances,i);
-//             Rat handled_frequency = n_inst * nth(serviceMCLs(),i) / nth(serviceMFs(),i);
-//             if(handled_frequency < mcl || mcl == 0){mcl = handled_frequency;}
-//             i = i + 1;
-//         }
-//         return mcl;
-//     }
+    Unit adapt(Map<String,Rat> metrics, Int time) {
+        Int i = 0;
+        List<Int> curr_config = list[];
+        while (i < length(services())) {
+            Int required_instances = this.computeInstances(metrics,i);
+            curr_config = appendright(curr_config,required_instances);
+            i = i + 1;
+        }
+        // println(toString(curr_config));
+        Rat mcl = this.mcl(curr_config);
+        mclMetric!push(mcl);
+        Rat inst = this.instances(curr_config);
+        instMetric!push(inst);
+        this.scale(curr_config);
+        config = curr_config;
+    }
+
+
+    Int computeInstances(Map<String,Rat> metrics, Int i) {
+        Rat mcl = nth(serviceMCLs(),i);
+        Rat mf = nth(serviceMFs(),i);
+        String service = nth(services(),i);
+        Int minInst = nth(base_config(),i);
+        Int currInst = nth(config,i);
+        Int target = minInst;
+        Rat curr = lookupDefault(metrics,"tot"+service,0) / monitoring_window();
+        if (curr - (mcl * currInst - kbig())  > k() || (mcl * currInst - kbig()) - curr > k()) target = ceil(float((curr + kbig() * mf)/ mcl));
+        return when target >= minInst then target else minInst;
+    }
+
+    Unit scale(List<Int> required_instances) {
+        Int i = 0;
+        while (i < length(required_instances)) {
+            Int currInst = nth(config, i);
+            Int direction = nth(required_instances,i) - currInst; 
+            WrapperScaleInterface orch = lookupUnsafe(wrappers,nth(services(),i));
+            Int minInst = nth(base_config(),i);    
+            if (direction < 0) {
+                direction = abs(direction);
+                while (direction > minInst) {
+                    orch!undeploy();
+                    direction = direction - 1;
+                }
+            } else {
+                direction = abs(direction);
+                while (direction > 0) {
+                    orch!deploy();
+                    direction = direction - 1;
+                }
+            }
+            i = i + 1;
+        }
+    }
+
+
+   [Atomic] Rat mcl(List<Int> microserviceInstances) {
+        Rat mcl = 0;
+        Int i = 0;
+        while(i < length(microserviceInstances)) {
+            Rat n_inst = nth(microserviceInstances,i);
+            Rat handled_frequency = n_inst * nth(serviceMCLs(),i) / nth(serviceMFs(),i);
+            if(handled_frequency < mcl || mcl == 0){mcl = handled_frequency;}
+            i = i + 1;
+        }
+        return mcl;
+    }
 
   
 
 
-//    [Atomic] Int instances(List<Int> ls) {
-//     Int ret = 0;
-//     foreach (l in ls) ret = ret + l;
-//     return ret;
-//    }
+   [Atomic] Int instances(List<Int> ls) {
+    Int ret = 0;
+    foreach (l in ls) ret = ret + l;
+    return ret;
+   }
 
 }

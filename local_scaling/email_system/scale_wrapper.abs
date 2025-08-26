@@ -1,0 +1,35 @@
+module Wrapper;
+
+export *;
+import * from ABS.DC;
+import * from MessageAnalyserPlan;
+import * from ImageAnalyserPlan;
+import * from AttachmentsManagerPlan;
+import * from VirusScannerPlan;
+import * from MessageParserPlan;
+
+
+interface WrapperScaleInterface {
+  Unit deploy();
+  Unit undeploy();
+}
+
+class WrapperScale(MessageAnalyserPlan map, MessageParserPlan mpp, ImageAnalyserPlan iap, AttachmentsManagerPlan atp, VirusScannerPlan vsp) implements WrapperScaleInterface{
+
+
+  Unit deploy(){
+    if (map != null) map!deploy();
+    else if (iap != null) iap!deploy();
+    else if (atp != null) atp!deploy();
+    else if (mpp != null) mpp!deploy();
+    else if (vsp != null) vsp!deploy();
+  }
+
+  Unit undeploy(){
+    if (map != null) map!undeploy();
+    else if (iap != null) iap!undeploy();
+    else if (atp != null) atp!undeploy();
+    else if (mpp != null) mpp!undeploy();
+    else if (vsp != null) vsp!undeploy();
+  }
+}

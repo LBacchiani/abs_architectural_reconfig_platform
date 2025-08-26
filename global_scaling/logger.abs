@@ -36,8 +36,14 @@ class Logger(PrometheusInterface prom) implements ILogger {
             completed = 0.0;
         }
         String proactive_log = when proactiveness() then " next: " + toString(next) else "";
-        // String mixing_log = when mixing() then " mixed: " + toString(mixed) else "";
-        println(toString(time * monitoring_window()) + " " + toString(avgLat * float(1000/time_unit_to_sec())) + proactive_log + " measured: " +  toString(float(rat(total)/monitoring_window())) + " tot: " + toString(total) + " comp: " + toString(completed) + " rej: " + toString(loss) + " supp: " + toString(mcl) + " inst: " + toString(inst));
+        String losses = "";
+        foreach (s in services()) {
+            Float lossLocal = float(lookupDefault(metrics,"rej" + s,0));
+            Float tot = float(lookupDefault(metrics,"tot" + s,0));
+            losses = losses + " " + s + " (tot: " + toString(tot) + " loss: " + toString(lossLocal) + ")";
+        }
+
+        println(toString(time * monitoring_window()) + " " + toString(avgLat * float(1000/time_unit_to_sec())) + proactive_log + " measured: " +  toString(float(rat(total)/monitoring_window())) + " tot: " + toString(total) + " comp: " + toString(completed) + " rej: " + toString(loss) + " supp: " + toString(mcl) + " inst: " + toString(inst));// + losses);
     }
 
     Int sum(List<Int> vs) {

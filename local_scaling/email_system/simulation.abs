@@ -15,7 +15,7 @@ import * from VirusScannerPlan;
 import * from AttachmentsManagerPlan;
 import * from ImageAnalyserPlan;
 import * from MessageAnalyserPlan;
-import * from LocalScaler;
+import * from Wrapper;
 import * from Adaptation;
 
 interface ISimulation {
@@ -50,34 +50,28 @@ class Simulation() implements ISimulation {
           MessageAnalyser_LoadBalancerInterface messageAnalyzerLB = head(messageAnalyser_LoadBalancerList);
 
           MessageParserPlan mpp = new MessageParserPlan(cp, prometheus, parserLB, headerLB, linkLB, textLB, virusScannerLB, db, messageAnalyzerLB);
-          LocalScaler parserLS = new ParserScaler(prometheus, mpp);
-
-          LocalScaler hls = new HeaderScaler(prometheus);
-          
-          LocalScaler lls = new LinkScaler(prometheus);
-
-          LocalScaler tls = new TextScaler(prometheus);
+          WrapperScaleInterface parserWrapper = new WrapperScale(null, mpp, null, null, null);
 
 
           VirusScannerPlan vsp = new VirusScannerPlan(cp, prometheus, virusScannerLB, messageAnalyzerLB, attManagerLB);
-          LocalScaler vsLS = new VirusScannerScaler(prometheus, vsp);
+          WrapperScaleInterface vsWrapper = new WrapperScale(null, null, null, null, vsp);
 
           AttachmentsManagerPlan atp = new AttachmentsManagerPlan(cp, prometheus, attManagerLB, imageAnalyzerLB); 
-          LocalScaler amLS = new AttachmentsManagerScaler(prometheus, atp);
+          WrapperScaleInterface amWrapper = new WrapperScale(null, null, null, atp, null);
 
           ImageAnalyserPlan iap = new ImageAnalyserPlan(cp, prometheus, imageAnalyzerLB, messageAnalyzerLB);
-          LocalScaler iaLS = new ImageAnalyserScaler(prometheus, iap);
+          WrapperScaleInterface iaWrapper = new WrapperScale(null, null, iap, null, null);
 
           MessageAnalyserPlan map = new MessageAnalyserPlan(cp, prometheus, messageAnalyzerLB, db);
-          LocalScaler mapLS = new MessageAnalyserScaler(prometheus, map);
+          WrapperScaleInterface maWrapper = new WrapperScale(map, null, null, null, null);
 
-          List<LocalScaler> scalers = list[parserLS,hls, lls, tls, vsLS,amLS,iaLS,mapLS];
+          Map<String,WrapperScaleInterface> wrappers = map[Pair("Parser", parserWrapper),Pair("Header", null), Pair("Link", null), Pair("Text", null), Pair("VirusScanner", vsWrapper),  Pair("AttachmentsManager", amWrapper), Pair("ImageAnalyser", iaWrapper),Pair("MessageAnalyser",maWrapper)];
 
           ////SETUP///
           BaseScale c2 = new BaseScale(cp, prometheus, parserLB, headerLB, linkLB, textLB,  virusScannerLB, attManagerLB, imageAnalyzerLB, messageAnalyzerLB, db);
           await c2!deploy();
 
-          AdaptationAlgorithm alg = new Algorithm(scalers);
+          AdaptationAlgorithm alg = new Algorithm(wrappers, prometheus);
 
           
           new Monitor(prometheus, alg);

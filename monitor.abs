@@ -27,20 +27,21 @@ class Monitor(PrometheusInterface prom, AdaptationAlgorithm alg) {
             time = time + 1;
             Rat start = timeValue(now()) - (monitoring_window() * time_unit_to_sec());
             Rat end = timeValue(now());
+            // Map<String,Rat> metrics = prom.getAllV();
             Map<String,Rat> metrics = map[];
-            foreach (m in global_metrics()) {
-                Rat val = await prom!getV(m, global_service_name());
-                metrics = put(metrics, m + global_service_name(), val);
-            }
             foreach (m in service_metrics()) {
                 foreach (s in services()) {
                     Rat val = await prom!getV(m, s);
                     metrics = put(metrics, m + s, val);
                 }
             }
-            prom!flush();
-            alg!adapt(metrics,time);        
-            logger!log(time,start,end,metrics);
+            foreach (m in global_metrics()) {
+                Rat val = await prom!getV(m, global_service_name());
+                metrics = put(metrics, m + global_service_name(), val);
+            }
+            prom.flush();
+            alg.adapt(metrics,time);        
+            logger.log(time,start,end,metrics);
         }
     }
 }

@@ -179,7 +179,7 @@ class Scale2(CloudProvider cloudProvider, AuthLoadBalancerInterface authLB, WebU
 		speedPatchMap = put(speedPatchMap, c4_xlarge_1, fromJust(lookup(speedPatchMap,c4_xlarge_1)) + coreRequired_odefault___WebUI_0_c4_xlarge_1);
 		ls_WebUIInterface = Cons(odefault___WebUI_0_c4_xlarge_1, ls_WebUIInterface);
 		this!patchSpeed(speedPatchMap);
-		await duration(waiting_time,waiting_time);
+		//await duration(waiting_time,waiting_time);
 		persistenceLB.connectInstance(odefault___Persistence_0_c4_2xlarge_0);
 		imageLB.connectInstance(odefault___Image_0_c4_2xlarge_0);
 		imageLB.connectInstance(odefault___Image_1_c4_2xlarge_0);

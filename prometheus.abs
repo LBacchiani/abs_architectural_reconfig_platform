@@ -37,6 +37,7 @@ interface PrometheusInterface {
     [Atomic] Unit register(List<Metric> ms);
     Rat getV(String metric, String key);
     Unit flush();
+    Map<String,Rat> getAllV();
 }
 
 
@@ -56,6 +57,21 @@ class Prometheus() implements PrometheusInterface {
         }
     }
 
+    Map<String,Rat> getAllV() {
+        Map<String,Rat> unified_metrics = map[];
+        foreach (p in entries(metrics)) {
+            Pair<String,String> key = fst(p);
+            List<Metric> ms = snd(p);
+            Rat tot = 0;
+            foreach (m in ms) {
+                Rat val = m.value();
+                tot = tot + val;
+            }
+            unified_metrics = put(unified_metrics, fst(key) + snd(key), tot);
+        }
+        return unified_metrics;
+    }
+
     Rat getV(String metric, String key) {
         List<Metric> ms = lookupDefault(metrics,Pair(metric,key),list[]);
         Rat toRet = 0;//m.value();
@@ -68,7 +84,7 @@ class Prometheus() implements PrometheusInterface {
 
     Unit flush() {
         foreach (ms in values(metrics)) {
-            foreach(m in ms) m.flush();
+            foreach(m in ms) m!flush();
         }
     }
 }

@@ -7,7 +7,7 @@ def Rat monitoring_window() = 20;  //second
 def Rat sendingWin() = 1;
 def Rat cycles() = length(workload()) / monitoring_window();
 
-def Int buffer_size() = 1000;
+def Int buffer_size() = 600;
 def String global_service_name() = "system";
 def List<String> services() = list["WebUI", "Persistence", "Auth", "Recommender", "Image"];
 def List<Rat> serviceMCLs() = list[150,905,190,5000,600];
@@ -33,10 +33,10 @@ def List<List<Int>> scale_config() = list[list[2,1,1,0,2],list[1,1,1,0,2]];
 def List<Int> base_config() = list[1,1,1,1,2];
 
 def List<Int> workload() = list[
-    16, 33, 50, 66, 83, 100, 116, 133, 150, 166,
-    183, 200, 216, 233, 250, 266, 283, 300, 316, 333,
-    350, 366, 383, 400, 416, 433, 450, 466, 483, 500,
-    500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
+    4, 9, 14, 18, 23, 27, 32, 36, 41, 45, 
+    50, 55, 59, 63, 68, 72, 77, 82, 86, 91,
+    274, 290, 280, 259, 277, 285, 264, 262, 280, 290, 
+    322, 292, 282, 280, 282, 282, 292, 252, 222, 322,
     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
     500, 500, 500, 500, 500, 500, 500, 500, 500, 500,
@@ -55,7 +55,7 @@ def List<Int> workload() = list[
     166, 150, 133, 116, 100, 83, 66, 50, 33, 16
 ];
 
-def Map<Int,List<Int>> predicted_workload() = map[];
+def List<List<Int>> predicted_workload() = list[];
 
 
 
@@ -63,5 +63,3 @@ def Int memory() = 3;
 def Bool proactiveness() = False;
 def Bool mixing() = proactiveness() && False;
 def List<Rat> scores() = list[];
-
-def Map<Int,List<Int>> predicted_workload() = map[];

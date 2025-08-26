@@ -1,0 +1,33 @@
+module Wrapper;
+
+export *;
+import * from ABS.DC;
+import * from AuthDeployment;
+import * from ImageDeployment;
+import * from PersistenceDeployment;
+import * from RecommenderDeployment;
+import * from WebUIDeployment;
+
+
+interface WrapperScaleInterface {
+  Unit deploy();
+  Unit undeploy();
+}
+
+class WrapperScale(WebUIDeployment webUI, PersistenceDeployment persistence, AuthDeployment auth, ImageDeployment image) implements WrapperScaleInterface{
+
+
+  Unit deploy(){
+    if (webUI != null) webUI!deploy();
+    else if (persistence != null) persistence!deploy();
+    else if (auth != null) auth!deploy();
+    else if (image != null) image!deploy();
+  }
+
+  Unit undeploy(){
+    if (webUI != null) webUI!undeploy();
+    else if (persistence != null) persistence!undeploy();
+    else if (auth != null) auth!undeploy();
+    else if (image != null) image!undeploy();
+  }
+}
